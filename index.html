@@ -4,108 +4,87 @@
 <meta charset="utf-8" />
 <title>КП «Экономическая эффективность молока»</title>
 <style>
-    body{font-family:Arial,Helvetica,sans-serif;margin:0;padding:0;background:#f7f7f9;color:#333}
-    header{background:#094;color:#fff;padding:20px 30px}
-    header h1{margin:0;font-size:22px}
-    .container{max-width:900px;margin:30px auto;padding:0 20px}
-    table{width:100%;border-collapse:collapse;margin-top:10px}
-    th,td{border:1px solid #aaa;padding:6px;text-align:center}
-    th{background:#e8e8ec}
-    td input{width:80px;padding:4px;text-align:center}
-    .highlight{font-weight:700;font-size:18px;color:#c00}
-    .result-block{margin-top:20px;border:1px solid #ccc;background:#fafbfd;padding:15px}
-    footer{margin:40px 0;text-align:center;font-size:13px;color:#666}
+ body{font-family:Arial,Helvetica,sans-serif;margin:0;background:#f7f7f9}
+ header{background:#094;color:#fff;padding:20px 30px}
+ .container{max-width:900px;margin:30px auto;padding:0 20px;color:#333}
+ table{width:100%;border-collapse:collapse;margin-top:10px}
+ th,td{border:1px solid #aaa;padding:6px;text-align:center}
+ th{background:#e8e8ec}
+ td input{width:80px;padding:4px;text-align:center}
+ .highlight{font-weight:700;font-size:18px;color:#c00}
+ .result-block{margin-top:20px;border:1px solid #ccc;background:#fafbfd;padding:15px}
+ footer{margin:40px 0;text-align:center;font-size:13px;color:#666}
 </style>
 </head>
 <body>
 
-<header>
-  <h1>Коммерческое предложение: расчёт экономической выгоды по жир/белку</h1>
-</header>
+<header><h1>Коммерческое предложение: расчёт экономической выгоды</h1></header>
 
 <div class="container">
-  <p>
-    Уважаемый партнёр! Наш сервис позволяет мгновенно оценить, как <strong>изменение показателей жира и&nbsp;белка</strong>
-    влияет на стоимость надоев. Заполните исходные данные — и вы увидите разницу по одной корове и масштабированную экономию
-    на всё поголовье.
-  </p>
+ <p>Введите показатели жира/белка, базовую цену молока и поголовье — расчёт обновится мгновенно.</p>
 
-  <!-- Исходные данные -->
-  <table>
-    <tr>
-      <th rowspan="2">Параметр</th>
-      <th colspan="2">Корова 1</th>
-      <th colspan="2">Корова 2</th>
-    </tr>
-    <tr>
-      <th>Жир&nbsp;%</th><th>Белок&nbsp;%</th>
-      <th>Жир&nbsp;%</th><th>Белок&nbsp;%</th>
-    </tr>
-    <tr>
-      <td>Показатели</td>
-      <td><input type="number" id="fat1" value="3.85" step="0.01"></td>
-      <td><input type="number" id="prot1" value="3.45" step="0.01"></td>
-      <td><input type="number" id="fat2" value="3.60" step="0.01"></td>
-      <td><input type="number" id="prot2" value="3.20" step="0.01"></td>
-    </tr>
-  </table>
+ <table>
+  <tr><th rowspan="2">Параметр</th><th colspan="2">Корова 1</th><th colspan="2">Корова 2</th></tr>
+  <tr><th>Жир %</th><th>Белок %</th><th>Жир %</th><th>Белок %</th></tr>
+  <tr>
+   <td>Показатели</td>
+   <td><input type="number" id="fat1"  value="3.85" step="0.01"></td>
+   <td><input type="number" id="prot1" value="3.45" step="0.01"></td>
+   <td><input type="number" id="fat2"  value="3.60" step="0.01"></td>
+   <td><input type="number" id="prot2" value="3.20" step="0.01"></td>
+  </tr>
+ </table>
 
-  <table>
-    <tr>
-      <th>Цена 1&nbsp;л молока при базисе 3.7&thinsp;% жира / 3.2&thinsp;% белка, ₽</th>
-      <th>Кол‑во коров, гол.</th>
-    </tr>
-    <tr>
-      <td><input type="number" id="basePrice" value="50" step="0.01"></td>
-      <td><input type="number" id="herd" value="1000" step="1"></td>
-    </tr>
-  </table>
+ <table>
+  <tr><th>Цена 1 л молока при базисе 3.7 / 3.2, ₽</th><th>Поголовье, гол.</th></tr>
+  <tr>
+   <td><input type="number" id="basePrice" value="50" step="0.01"></td>
+   <td><input type="number" id="herd"      value="1000" step="1"></td>
+  </tr>
+ </table>
 
-  <!-- Итоги -->
-  <div class="result-block" id="results">
-     <!-- заполняется JS -->
-  </div>
+ <div class="result-block" id="results"></div>
 </div>
 
-<footer>© 2025 ООО «Эконива». Все расчёты примерные и нуждаются в дополнительной верификации.</footer>
+<footer>© 2025 ООО «Эконива». Расчёт демонстрационный.</footer>
 
 <script>
-/* === простая модель стоимости надоев ===
-   Формула:  Cost = BasePrice × (1 + k_fat × Δfat  + k_prot × Δprot)
-   где Δfat = (Fat% - 3.7) / 3.7  (аналог для белка)
-   Коэффициенты k_fat, k_prot подобраны условно (0.7 и 1.2) для демонстрации. */
+/* === модель, согласованная с Excel‑примером ===
+   базис: жир 3.7 %, белок 3.2 %
+   шаг = 0.1 %; стоимость считается на 10 000 кг
+   добавка за каждый шаг:
+     kFat  = –0.06353   (руб/л от базовой цены за –/+0.1 % жира)
+     kProt =  0.09530   (руб/л за +0.1 % белка)
+*/
 
-const kFat  = 0.7;
-const kProt = 1.2;
+const baseFat   = 3.7;
+const baseProt  = 3.2;
+const stepSize  = 0.1;          // 0.1 %
+const kFat      = -0.06353;     // коэффициенты выведены из Excel‑примеров
+const kProt     =  0.09530;
+const kgBase    = 10_000;       // расчёт на 10 000 кг
 
 const inputs = ['fat1','prot1','fat2','prot2','basePrice','herd'];
 inputs.forEach(id => document.getElementById(id).addEventListener('input', calc));
 
-calc(); // первый расчёт при загрузке
+calc();  // первичный пересчёт
 
 function calc(){
-  // читаем значения
-  const fat1  = parseFloat(val('fat1')),  prot1 = parseFloat(val('prot1'));
-  const fat2  = parseFloat(val('fat2')),  prot2 = parseFloat(val('prot2'));
-  const base  = parseFloat(val('basePrice'));
-  const herd  = parseInt  (val('herd'),10);
+  const fat1 = +val('fat1'),  prot1 = +val('prot1');
+  const fat2 = +val('fat2'),  prot2 = +val('prot2');
+  const base = +val('basePrice');
+  const herd = +val('herd');
 
-  // функция стоимости надоя (за 100 000 кг условного молока)
-  const cost = (fat,prot) =>
-       base * 100000 * (1 + kFat  * ((fat - 3.7) / 3.7)
-                         + kProt * ((prot - 3.2) / 3.2));
-
-  const cost1 = cost(fat1, prot1);
-  const cost2 = cost(fat2, prot2);
+  const cost1 = cost(fat1, prot1, base);
+  const cost2 = cost(fat2, prot2, base);
   const diff  = cost1 - cost2;
-  const scaled= diff * herd / 100000;   // экономия на всё поголовье
+  const scaled= diff * herd / kgBase;
 
-  // вывод
   document.getElementById('results').innerHTML = `
     <table>
       <tr><th></th><th>Корова 1</th><th>Корова 2</th><th>Разница</th></tr>
       <tr>
-        <td>Стоимость надоев<br>(на 100 000 кг), ₽</td>
+        <td>Стоимость надоев<br>(на ${kgBase.toLocaleString()} кг), ₽</td>
         <td>${fmt(cost1)}</td>
         <td>${fmt(cost2)}</td>
         <td class="highlight">${fmt(diff)}</td>
@@ -117,10 +96,19 @@ function calc(){
     </table>`;
 }
 
-function fmt(num){
-  return num.toLocaleString('ru-RU', {style:'currency', currency:'RUB', maximumFractionDigits:0});
+function cost(fat, prot, basePrice){
+  const stepFat  = (fat  - baseFat)  / stepSize;   // количество «шагов» 0.1 %
+  const stepProt = (prot - baseProt) / stepSize;
+
+  const premiumPerLitre = basePrice * (kFat*stepFat + kProt*stepProt); // руб/л
+  const pricePerLitre   = basePrice + premiumPerLitre;
+
+  return pricePerLitre * kgBase;  // стоимость надоев на 10 000 кг
 }
-function val(id){ return document.getElementById(id).value; }
+
+function fmt(num){ return num.toLocaleString('ru-RU',{style:'currency',currency:'RUB',maximumFractionDigits:0}) }
+function val(id){ return document.getElementById(id).value }
 </script>
 </body>
 </html>
+
