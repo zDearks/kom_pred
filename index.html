@@ -1,118 +1,130 @@
 <!doctype html>
 <html lang="ru">
 <head>
-<meta charset="utf-8" />
-<title>КП «Экономическая эффективность молока»</title>
-<style>
- body{font-family:Arial,Helvetica,sans-serif;margin:0;background:#f7f7f9}
- header{background:#094;color:#fff;padding:20px 30px}
- .container{max-width:900px;margin:30px auto;padding:0 20px;color:#333}
- table{width:100%;border-collapse:collapse;margin-top:10px}
- th,td{border:1px solid #aaa;padding:6px;text-align:center}
- th{background:#e8e8ec}
- td input{width:80px;padding:4px;text-align:center}
- .highlight{font-weight:700;font-size:18px;color:#c00}
- .result-block{margin-top:20px;border:1px solid #ccc;background:#fafbfd;padding:15px}
- footer{margin:40px 0;text-align:center;font-size:13px;color:#666}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Формула выгоды · ЭкоНива</title>
+  <style>
+    :root{
+      --green:#009639;        /* основной цвет ЭкоНивы */
+      --green-dark:#067a2e;
+      --bg:#f6faf7;
+      --card:#ffffff;
+      --ink:#1f2937;
+      --muted:#6b7280;
+      --line:#e5e7eb;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; background:var(--bg); color:var(--ink);
+      font:15px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    }
+    .topbar{
+      background:linear-gradient(90deg,var(--green),#15b36a);
+      color:#fff; padding:18px 20px;
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+    }
+    .brand{
+      display:flex; align-items:center; gap:14px; font-weight:800;
+      letter-spacing:.2px;
+    }
+    .brand .dot{width:12px;height:12px;border-radius:50%;background:#fff;opacity:.9}
+    .brand h1{margin:0; font-size:20px}
+    .container{max-width:1100px;margin:18px auto;padding:0 16px}
+    .card{
+      background:var(--card); border:1px solid var(--line); border-radius:14px;
+      box-shadow:0 2px 8px rgba(0,0,0,.04);
+      overflow:hidden; margin-bottom:16px;
+    }
+    .card .head{padding:14px 16px; border-bottom:1px solid var(--line); font-weight:700}
+    .card .body{padding:16px}
+    .instruction{
+      display:grid; grid-template-columns:1fr 1fr; gap:12px;
+    }
+    .instruction .step{
+      background:#f4fff7; border:1px dashed #c7ead2; border-radius:10px; padding:12px 14px;
+    }
+    .step b{color:var(--green-dark)}
+    /* зона калькулятора */
+    #calculator{padding:0}
+    /* футер */
+    footer{
+      max-width:1100px; margin:22px auto 30px; padding:0 16px;
+      display:flex; align-items:flex-end; justify-content:space-between; gap:14px;
+      color:var(--muted);
+    }
+    .contacts{
+      background:var(--card); border:1px solid var(--line); border-radius:12px;
+      padding:12px 14px;
+    }
+    .contacts a{color:var(--green-dark); text-decoration:none}
+    .cow{height:86px; width:auto; opacity:.95}
+    /* адаптив */
+    @media (max-width:900px){
+      .instruction{grid-template-columns:1fr}
+      footer{flex-direction:column-reverse; align-items:flex-start}
+      .cow{height:72px}
+    }
+  </style>
 </head>
 <body>
 
-<header><h1>Коммерческое предложение: расчёт экономической выгоды</h1></header>
+  <!-- Шапка -->
+  <header class="topbar">
+    <div class="brand">
+      <span class="dot" aria-hidden="true"></span>
+      <h1>Формула выгоды</h1>
+    </div>
+  </header>
 
-<div class="container">
-  <p>
-    Уважаемый партнёр! Наш сервис позволяет мгновенно оценить, как <strong>изменение показателей жира и&nbsp;белка</strong>
-    влияет на стоимость надоев. Заполните исходные данные — и вы увидите разницу по одной корове и масштабированную экономию
-    на всё поголовье.
-  </p>
+  <main class="container">
 
- <table>
-  <tr><th rowspan="2">Параметр</th><th colspan="2">Корова 1</th><th colspan="2">Корова 2</th></tr>
-  <tr><th>Жир %</th><th>Белок %</th><th>Жир %</th><th>Белок %</th></tr>
-  <tr>
-   <td>Показатели</td>
-   <td><input type="number" id="fat1"  value="3.85" step="0.01"></td>
-   <td><input type="number" id="prot1" value="3.45" step="0.01"></td>
-   <td><input type="number" id="fat2"  value="3.60" step="0.01"></td>
-   <td><input type="number" id="prot2" value="3.20" step="0.01"></td>
-  </tr>
- </table>
+    <!-- Инструкция -->
+    <section class="card">
+      <div class="head">Как пользоваться калькулятором</div>
+      <div class="body instruction">
+        <div class="step">
+          <b>1. Ввод данных.</b> Заполните жёлтые поля: цену, объём, курсы, логистику, ставки (пошлина/НДС/агент). 
+          В поле «Наименование товара» можно вводить текст.
+        </div>
+        <div class="step">
+          <b>2. Результаты.</b> Справа автоматически появятся ключевые показатели: цена FOB, себестоимость в порту/на складе, прибыль и т. д.
+        </div>
+        <div class="step">
+          <b>3. Детализация.</b> В нижнем блоке — развернутый расчёт. Его можно свернуть/развернуть и выгрузить в PDF.
+        </div>
+        <div class="step">
+          <b>Советы.</b> Значения с процентами вводите как долю (например, 0.10 = 10%). 
+          Стрелки у числовых полей меняют шаг на 0,01 (для долей — 0,0001).
+        </div>
+      </div>
+    </section>
 
- <table>
-  <tr><th>Цена 1 л молока при базисе 3.7 / 3.2, ₽</th><th>Поголовье, гол.</th></tr>
-  <tr>
-   <td><input type="number" id="basePrice" value="50" step="0.01"></td>
-   <td><input type="number" id="herd"      value="1000" step="1"></td>
-  </tr>
- </table>
+    <!-- Ваш калькулятор -->
+    <section id="calculator" class="card">
+      <div class="head">Калькулятор</div>
+      <div class="body">
+        <!-- Вставьте сюда (или оставьте здесь) разметку вашего калькулятора.
+             Если вы уже используете версию с блоками “1 Ввод”, “2 Результаты”, “3 Детализация”,
+             просто поместите её внутрь этого контейнера. -->
+        <div id="app-placeholder" style="color:#6b7280">
+          Здесь должен быть калькулятор. Если вы видите этот текст — вставьте HTML вашего калькулятора внутрь секции #calculator.
+        </div>
+      </div>
+    </section>
 
- <div class="result-block" id="results"></div>
-</div>
+  </main>
 
-<footer>© 2025 ООО «Эконива». Расчёт демонстрационный.</footer>
+  <!-- Футер с коровой и контактами -->
+  <footer>
+    <img class="cow" src="cow.png" alt="ЭкоНива" />
+    <div class="contacts">
+      <div style="font-weight:700;color:#111;margin-bottom:4px">Контакты для обратной связи</div>
+      <div>Алина Сорокина</div>
+      <div>Тел.: <a href="tel:+79204085592">+7 920 408-55-92</a></div>
+      <div>E-mail: <a href="mailto:alina.sorokina@ekoniva-apk.com">alina.sorokina@ekoniva-apk.com</a></div>
+    </div>
+  </footer>
 
-<script>
-/* === модель, согласованная с Excel‑примером ===
-   базис: жир 3.7 %, белок 3.2 %
-   шаг = 0.1 %; стоимость считается на 10 000 кг
-   добавка за каждый шаг:
-     kFat  = –0.06353   (руб/л от базовой цены за –/+0.1 % жира)
-     kProt =  0.09530   (руб/л за +0.1 % белка)
-*/
-
-const baseFat   = 3.7;
-const baseProt  = 3.2;
-const stepSize  = 0.1;          // 0.1 %
-const kFat      = -0.06353;     // коэффициенты выведены из Excel‑примеров
-const kProt     =  0.09530;
-const kgBase    = 10_000;       // расчёт на 10 000 кг
-
-const inputs = ['fat1','prot1','fat2','prot2','basePrice','herd'];
-inputs.forEach(id => document.getElementById(id).addEventListener('input', calc));
-
-calc();  // первичный пересчёт
-
-function calc(){
-  const fat1 = +val('fat1'),  prot1 = +val('prot1');
-  const fat2 = +val('fat2'),  prot2 = +val('prot2');
-  const base = +val('basePrice');
-  const herd = +val('herd');
-
-  const cost1 = cost(fat1, prot1, base);
-  const cost2 = cost(fat2, prot2, base);
-  const diff  = cost1 - cost2;
-  const scaled= diff * herd / kgBase;
-
-  document.getElementById('results').innerHTML = `
-    <table>
-      <tr><th></th><th>Корова 1</th><th>Корова 2</th><th>Разница</th></tr>
-      <tr>
-        <td>Стоимость надоев<br>(на ${kgBase.toLocaleString()} кг), ₽</td>
-        <td>${fmt(cost1)}</td>
-        <td>${fmt(cost2)}</td>
-        <td class="highlight">${fmt(diff)}</td>
-      </tr>
-      <tr>
-        <td colspan="3" style="text-align:right;"><strong>Экономия на всё поголовье:</strong></td>
-        <td class="highlight">${fmt(scaled)}</td>
-      </tr>
-    </table>`;
-}
-
-function cost(fat, prot, basePrice){
-  const stepFat  = (fat  - baseFat)  / stepSize;   // количество «шагов» 0.1 %
-  const stepProt = (prot - baseProt) / stepSize;
-
-  const premiumPerLitre = basePrice * (kFat*stepFat + kProt*stepProt); // руб/л
-  const pricePerLitre   = basePrice + premiumPerLitre;
-
-  return pricePerLitre * kgBase;  // стоимость надоев на 10 000 кг
-}
-
-function fmt(num){ return num.toLocaleString('ru-RU',{style:'currency',currency:'RUB',maximumFractionDigits:0}) }
-function val(id){ return document.getElementById(id).value }
-</script>
 </body>
 </html>
-
