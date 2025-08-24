@@ -1,130 +1,345 @@
 <!doctype html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Формула выгоды · ЭкоНива</title>
-  <style>
-    :root{
-      --green:#009639;        /* основной цвет ЭкоНивы */
-      --green-dark:#067a2e;
-      --bg:#f6faf7;
-      --card:#ffffff;
-      --ink:#1f2937;
-      --muted:#6b7280;
-      --line:#e5e7eb;
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0; background:var(--bg); color:var(--ink);
-      font:15px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-    }
-    .topbar{
-      background:linear-gradient(90deg,var(--green),#15b36a);
-      color:#fff; padding:18px 20px;
-      display:flex; align-items:center; justify-content:space-between; gap:12px;
-    }
-    .brand{
-      display:flex; align-items:center; gap:14px; font-weight:800;
-      letter-spacing:.2px;
-    }
-    .brand .dot{width:12px;height:12px;border-radius:50%;background:#fff;opacity:.9}
-    .brand h1{margin:0; font-size:20px}
-    .container{max-width:1100px;margin:18px auto;padding:0 16px}
-    .card{
-      background:var(--card); border:1px solid var(--line); border-radius:14px;
-      box-shadow:0 2px 8px rgba(0,0,0,.04);
-      overflow:hidden; margin-bottom:16px;
-    }
-    .card .head{padding:14px 16px; border-bottom:1px solid var(--line); font-weight:700}
-    .card .body{padding:16px}
-    .instruction{
-      display:grid; grid-template-columns:1fr 1fr; gap:12px;
-    }
-    .instruction .step{
-      background:#f4fff7; border:1px dashed #c7ead2; border-radius:10px; padding:12px 14px;
-    }
-    .step b{color:var(--green-dark)}
-    /* зона калькулятора */
-    #calculator{padding:0}
-    /* футер */
-    footer{
-      max-width:1100px; margin:22px auto 30px; padding:0 16px;
-      display:flex; align-items:flex-end; justify-content:space-between; gap:14px;
-      color:var(--muted);
-    }
-    .contacts{
-      background:var(--card); border:1px solid var(--line); border-radius:12px;
-      padding:12px 14px;
-    }
-    .contacts a{color:var(--green-dark); text-decoration:none}
-    .cow{height:86px; width:auto; opacity:.95}
-    /* адаптив */
-    @media (max-width:900px){
-      .instruction{grid-template-columns:1fr}
-      footer{flex-direction:column-reverse; align-items:flex-start}
-      .cow{height:72px}
-    }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Формула выгоды · ЭкоНива</title>
+
+<!-- Библиотеки для экспорта в PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+<style>
+:root{
+  --green:#009639; --green2:#0ea76a;
+  --ink:#1f2937; --muted:#6b7280;
+  --bg:#f6faf7; --card:#fff; --line:#e5e7eb;
+  --edit:#fff6bf;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif}
+.header{background:linear-gradient(90deg,var(--green),var(--green2));color:#fff;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.header h1{margin:0;font-size:20px}
+.header .actions{display:flex;gap:8px}
+button{cursor:pointer;border:1px solid #cbd5e1;background:#fff;border-radius:10px;padding:8px 12px}
+.container{max-width:1100px;margin:18px auto;padding:0 16px}
+.block{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.04);margin-bottom:16px;overflow:hidden}
+.block .head{padding:12px 14px;border-bottom:1px solid var(--line);font-weight:800}
+.block .body{padding:14px}
+.grid{display:grid;grid-template-columns:1.15fr .85fr;gap:16px}
+@media (max-width:980px){.grid{grid-template-columns:1fr}}
+.table{width:100%;border-collapse:collapse}
+.table th,.table td{border:1px solid var(--line);padding:8px 10px;vertical-align:middle}
+.table th{background:#f8fafb}
+.cell-inp{width:100%;padding:8px 10px;border:1px solid #cbd5e1;border-radius:10px;background:var(--edit);font:inherit}
+.cell-inp[type=number]{text-align:right}
+.cell-inp.text{background:#fff;text-align:left}
+.row-title{white-space:nowrap;font-weight:700;background:#fbfffb}
+.kpis{display:grid;grid-template-columns:1fr;gap:10px}
+.kpi{background:#f7fff9;border:1px solid #d9f2e2;border-radius:12px;padding:10px 12px}
+.kpi .name{font-size:12px;color:var(--muted)}
+.kpi .val{font-size:20px;font-weight:800;color:#0b6e2b;word-break:break-all}
+.muted{color:var(--muted)}
+.footer{max-width:1100px;margin:18px auto 28px;padding:0 16px;display:flex;justify-content:space-between;align-items:end;gap:16px}
+.footer .contacts{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.footer .contacts a{color:#0b6e2b;text-decoration:none}
+.footer img{height:86px;width:auto}
+@media (max-width:900px){.footer{flex-direction:column-reverse;align-items:flex-start}.footer img{height:72px}}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border:1px solid #d1e9d7;border-radius:999px;background:#f2fff7;color:#0b6e2b;font-size:12px}
+.row-sub{font-size:12px;color:var(--muted)}
+.right{ text-align:right }
+</style>
 </head>
 <body>
 
-  <!-- Шапка -->
-  <header class="topbar">
-    <div class="brand">
-      <span class="dot" aria-hidden="true"></span>
-      <h1>Формула выгоды</h1>
-    </div>
-  </header>
+<header class="header">
+  <h1>Формула выгоды</h1>
+  <div class="actions">
+    <button id="toggleDetails">Свернуть детали</button>
+    <button id="btnPdf">Скачать PDF</button>
+    <button id="btnReset">Сбросить</button>
+  </div>
+</header>
 
-  <main class="container">
+<main id="capture" class="container">
 
-    <!-- Инструкция -->
-    <section class="card">
-      <div class="head">Как пользоваться калькулятором</div>
-      <div class="body instruction">
-        <div class="step">
-          <b>1. Ввод данных.</b> Заполните жёлтые поля: цену, объём, курсы, логистику, ставки (пошлина/НДС/агент). 
-          В поле «Наименование товара» можно вводить текст.
+  <!-- Инструкция -->
+  <section class="block">
+    <div class="head">Короткая инструкция</div>
+    <div class="body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="badge">1) Введите данные</div>
+        <div class="badge">2) Проверьте результаты</div>
+        <div class="muted">
+          Заполните жёлтые поля: наименование, базовую цену (руб/кг), базовые Ж/Б, веса влияния Жира/Белка
+          (в долях, по умолчанию 0.5 + 0.5), объём сравнения (кг) и характеристики двух коров.
+          Можно вводить значения с запятой (например 3,7).
         </div>
-        <div class="step">
-          <b>2. Результаты.</b> Справа автоматически появятся ключевые показатели: цена FOB, себестоимость в порту/на складе, прибыль и т. д.
-        </div>
-        <div class="step">
-          <b>3. Детализация.</b> В нижнем блоке — развернутый расчёт. Его можно свернуть/развернуть и выгрузить в PDF.
-        </div>
-        <div class="step">
-          <b>Советы.</b> Значения с процентами вводите как долю (например, 0.10 = 10%). 
-          Стрелки у числовых полей меняют шаг на 0,01 (для долей — 0,0001).
+        <div class="muted">
+          Цена для каждой коровы рассчитывается от базовой цены с учётом состава. Ниже видны итоговые суммы,
+          разница и кто выгоднее. Детализацию можно свернуть, а всю страницу — выгрузить в PDF.
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <!-- Ваш калькулятор -->
-    <section id="calculator" class="card">
-      <div class="head">Калькулятор</div>
+  <div class="grid">
+    <!-- 1) Ввод -->
+    <section class="block">
+      <div class="head">1) Ввод данных</div>
       <div class="body">
-        <!-- Вставьте сюда (или оставьте здесь) разметку вашего калькулятора.
-             Если вы уже используете версию с блоками “1 Ввод”, “2 Результаты”, “3 Детализация”,
-             просто поместите её внутрь этого контейнера. -->
-        <div id="app-placeholder" style="color:#6b7280">
-          Здесь должен быть калькулятор. Если вы видите этот текст — вставьте HTML вашего калькулятора внутрь секции #calculator.
-        </div>
+        <table class="table">
+          <colgroup><col style="width:40%"><col><col></colgroup>
+          <thead><tr><th>Параметр</th><th>Значение</th><th class="right">Ед.</th></tr></thead>
+          <tbody id="inputs">
+            <tr>
+              <td class="row-title">Наименование товара</td>
+              <td><input id="name" class="cell-inp text" placeholder="Например: Молоко сырье" /></td>
+              <td class="right">—</td>
+            </tr>
+            <tr>
+              <td class="row-title">Базовая цена при базе Ж/Б</td>
+              <td><input id="basePrice" type="number" step="0.01" class="cell-inp" value="50"></td>
+              <td class="right">руб/кг</td>
+            </tr>
+            <tr>
+              <td class="row-title">База: Жир / Белок</td>
+              <td style="display:flex; gap:8px">
+                <input id="baseFat"   type="number" step="0.01" class="cell-inp" value="3.7"  title="Жир, %">
+                <input id="baseProt"  type="number" step="0.01" class="cell-inp" value="3.2"  title="Белок, %">
+              </td>
+              <td class="right">%</td>
+            </tr>
+            <tr>
+              <td class="row-title">Веса влияния (Жир / Белок) <div class="row-sub">в долях, суммарно 1.00</div></td>
+              <td style="display:flex; gap:8px">
+                <input id="wFat"  type="number" step="0.01" class="cell-inp" value="0.50">
+                <input id="wProt" type="number" step="0.01" class="cell-inp" value="0.50">
+              </td>
+              <td class="right">доля</td>
+            </tr>
+            <tr>
+              <td class="row-title">Объём сравнения / Кол-во голов</td>
+              <td style="display:flex; gap:8px">
+                <input id="volume" type="number" step="1" class="cell-inp" value="10000" title="Объём, кг">
+                <input id="heads"  type="number" step="1" class="cell-inp" value="1"     title="Голов">
+              </td>
+              <td class="right">кг / гол.</td>
+            </tr>
+            <tr>
+              <td class="row-title">Корова 1: Жир / Белок</td>
+              <td style="display:flex; gap:8px">
+                <input id="fat1"  type="number" step="0.01" class="cell-inp" value="3.85">
+                <input id="prot1" type="number" step="0.01" class="cell-inp" value="3.45">
+              </td>
+              <td class="right">%</td>
+            </tr>
+            <tr>
+              <td class="row-title">Корова 2: Жир / Белок</td>
+              <td style="display:flex; gap:8px">
+                <input id="fat2"  type="number" step="0.01" class="cell-inp" value="3.60">
+                <input id="prot2" type="number" step="0.01" class="cell-inp" value="3.20">
+              </td>
+              <td class="right">%</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="muted" style="margin-top:8px">Примечание: можно менять веса. Если wЖир + wБелок ≠ 1, они будут нормированы автоматически.</div>
       </div>
     </section>
 
-  </main>
+    <!-- 2) Результаты -->
+    <section class="block">
+      <div class="head">2) Результаты и главные показатели</div>
+      <div class="body">
+        <div class="kpis" id="kpis"></div>
+      </div>
+    </section>
+  </div>
 
-  <!-- Футер с коровой и контактами -->
-  <footer>
-    <img class="cow" src="cow.png" alt="ЭкоНива" />
-    <div class="contacts">
-      <div style="font-weight:700;color:#111;margin-bottom:4px">Контакты для обратной связи</div>
-      <div>Алина Сорокина</div>
-      <div>Тел.: <a href="tel:+79204085592">+7 920 408-55-92</a></div>
-      <div>E-mail: <a href="mailto:alina.sorokina@ekoniva-apk.com">alina.sorokina@ekoniva-apk.com</a></div>
+  <!-- 3) Детализация -->
+  <section class="block" id="details">
+    <div class="head">3) Детализация расчёта (только чтение)</div>
+    <div class="body">
+      <table class="table" id="detailsTable">
+        <thead>
+          <tr>
+            <th>Показатель</th>
+            <th class="right">Корова 1</th>
+            <th class="right">Корова 2</th>
+            <th class="right">Ед.</th>
+          </tr>
+        </thead>
+        <tbody id="detBody"></tbody>
+      </table>
+      <div class="muted" style="margin-top:8px">
+        Формула по умолчанию: <b>Цена = БазоваяЦена × ( wЖир × (Жир/БазаЖир) + wБелок × (Белок/БазаБелок) )</b>.<br>
+        При желании легко заменить на линейную «надбавки за Δ%» — скажите, добавлю коэффициенты.
+      </div>
     </div>
-  </footer>
+  </section>
 
+</main>
+
+<!-- футер -->
+<div class="footer">
+  <img src="cow.png" alt="ЭкоНива">
+  <div class="contacts">
+    <div style="font-weight:800;margin-bottom:4px">Контакты для обратной связи</div>
+    <div>Алина Сорокина</div>
+    <div>Тел.: <a href="tel:+79204085592">+7&nbsp;920&nbsp;408-55-92</a></div>
+    <div>E-mail: <a href="mailto:alina.sorokina@ekoniva-apk.com">alina.sorokina@ekoniva-apk.com</a></div>
+  </div>
+</div>
+
+<script>
+/* ===== Утилиты ===== */
+const el = id => document.getElementById(id);
+const num = v => {
+  if (v === '' || v == null) return 0;
+  const n = Number(String(v).replace(',', '.').replace(/\s+/g,''));
+  return Number.isFinite(n) ? n : 0;
+};
+const fmt2 = v => (v==null || isNaN(v)) ? '' : Number(v).toFixed(2);
+
+/* ===== Расчёт ===== */
+function normalizeWeights(wf, wp){
+  const s = wf + wp;
+  if (s <= 0) return [0.5, 0.5];
+  return [wf/s, wp/s];
+}
+
+function calc(){
+  const name = el('name').value.trim();
+
+  const basePrice = num(el('basePrice').value);     // руб/кг
+  const baseFat   = num(el('baseFat').value);       // %
+  const baseProt  = num(el('baseProt').value);      // %
+  let   wFat      = num(el('wFat').value);          // доля
+  let   wProt     = num(el('wProt').value);         // доля
+  [wFat, wProt] = normalizeWeights(wFat, wProt);
+
+  const volume = Math.max(0,num(el('volume').value)); // кг
+  const heads  = Math.max(1,Math.round(num(el('heads').value)));
+
+  const fat1  = num(el('fat1').value),  prot1 = num(el('prot1').value);
+  const fat2  = num(el('fat2').value),  prot2 = num(el('prot2').value);
+
+  // цена за кг по формуле весов
+  const price1 = basePrice * ( wFat * (fat1/baseFat) + wProt * (prot1/baseProt) );
+  const price2 = basePrice * ( wFat * (fat2/baseFat) + wProt * (prot2/baseProt) );
+
+  // стоимость надоев на выбранном объёме
+  const total1 = price1 * volume;
+  const total2 = price2 * volume;
+  const diff   = total1 - total2;
+  const better = diff>0 ? 'Корова 1' : (diff<0 ? 'Корова 2' : 'Одинаково');
+
+  const herd1 = total1 * heads;
+  const herd2 = total2 * heads;
+  const herdDiff = herd1 - herd2;
+
+  // KPI
+  const kpis = [
+    ['Наименование товара', name || '—'],
+    ['Базовая цена, руб/кг', fmt2(basePrice)],
+    ['Цена Корова 1, руб/кг', fmt2(price1)],
+    ['Цена Корова 2, руб/кг', fmt2(price2)],
+    ['Стоимость надоя (Корова 1), руб', fmt2(total1)],
+    ['Стоимость надоя (Корова 2), руб', fmt2(total2)],
+    ['Разница на объёме, руб', fmt2(Math.abs(diff))],
+    ['Разница на стаде, руб', fmt2(Math.abs(herdDiff))],
+    ['Кто выгоднее', better]
+  ];
+  renderKPIs(kpis);
+
+  // Детализация
+  const rows = [
+    ['База (Жир / Белок)', `${fmt2(baseFat)} / ${fmt2(baseProt)}`, `${fmt2(baseFat)} / ${fmt2(baseProt)}`, '%'],
+    ['Фактический состав (Ж/Б)', `${fmt2(fat1)} / ${fmt2(prot1)}`, `${fmt2(fat2)} / ${fmt2(prot2)}`, '%'],
+    ['Веса влияния (Жир / Белок)', `${fmt2(wFat)} / ${fmt2(wProt)}`, `${fmt2(wFat)} / ${fmt2(wProt)}`, 'доля'],
+    ['Цена, руб/кг', fmt2(price1), fmt2(price2), 'руб/кг'],
+    ['Объём сравнения', fmt2(volume), fmt2(volume), 'кг'],
+    ['Стоимость надоя', fmt2(total1), fmt2(total2), 'руб'],
+    ['Кол-во голов', fmt2(heads), fmt2(heads), 'шт'],
+    ['Стоимость по стаду', fmt2(herd1), fmt2(herd2), 'руб'],
+    ['Разница (кто выгоднее)', diff>0?fmt2(diff):'–'+fmt2(Math.abs(diff)), diff<0?fmt2(-diff):'–'+fmt2(Math.abs(diff)), 'руб'],
+  ];
+  renderDetails(rows);
+}
+
+function renderKPIs(items){
+  const box = el('kpis'); box.innerHTML='';
+  items.forEach(([name,val])=>{
+    const div = document.createElement('div');
+    div.className = 'kpi';
+    div.innerHTML = `<div class="name">${name}</div><div class="val">${val}</div>`;
+    box.appendChild(div);
+  });
+}
+
+function renderDetails(rows){
+  const tb = el('detBody'); tb.innerHTML='';
+  rows.forEach(([t,v1,v2,u])=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="row-title">${t}</td>
+      <td class="right">${v1}</td>
+      <td class="right">${v2}</td>
+      <td class="right">${u}</td>`;
+    tb.appendChild(tr);
+  });
+}
+
+/* ===== Служебные: сброс, экспорт, сворачивание ===== */
+function resetAll(){
+  document.querySelectorAll('.cell-inp').forEach(i=>{
+    if (i.type==='number') i.value = '';
+    else i.value = '';
+  });
+  // значения по умолчанию
+  el('basePrice').value=50; el('baseFat').value=3.7; el('baseProt').value=3.2;
+  el('wFat').value=0.5; el('wProt').value=0.5; el('volume').value=10000; el('heads').value=1;
+  el('fat1').value=3.85; el('prot1').value=3.45; el('fat2').value=3.60; el('prot2').value=3.20;
+  calc();
+}
+async function exportPDF(){
+  const area = document.getElementById('capture');
+  const canvas = await html2canvas(area,{scale:2,useCORS:true});
+  const img = canvas.toDataURL('image/png');
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF('p','pt','a4');
+  const w = pdf.internal.pageSize.getWidth();
+  const h = pdf.internal.pageSize.getHeight();
+  const ratio = canvas.width/canvas.height;
+  let imgW = w-40, imgH = imgW/ratio, x=20,y=20;
+  if (imgH>h-40){ imgH=h-40; imgW=imgH*ratio; }
+  pdf.addImage(img,'PNG',x,y,imgW,imgH,'','FAST');
+  // простая многостраничность (если длинно)
+  let rendered = imgH*(canvas.width/imgW);
+  let left = canvas.height - rendered;
+  while(left>0){ pdf.addPage(); pdf.addImage(img,'PNG',x,20,imgW,imgH,'','FAST'); left -= rendered; }
+  pdf.save('formula_vygody_ekoniva.pdf');
+}
+function toggleDetails(){
+  const sec = document.getElementById('details');
+  const btn = document.getElementById('toggleDetails');
+  const body = sec.querySelector('.body');
+  const v = body.style.display === 'none';
+  body.style.display = v ? 'block' : 'none';
+  btn.textContent = v ? 'Свернуть детали' : 'Развернуть детали';
+}
+
+/* ===== Слушатели и запуск ===== */
+document.getElementById('btnReset').addEventListener('click', resetAll);
+document.getElementById('btnPdf').addEventListener('click', exportPDF);
+document.getElementById('toggleDetails').addEventListener('click', toggleDetails);
+
+document.querySelectorAll('#inputs .cell-inp').forEach(inp=>{
+  inp.addEventListener('input', calc);
+});
+
+calc(); // первичный расчёт
+</script>
 </body>
 </html>
