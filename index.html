@@ -6,8 +6,8 @@
 <title>Формула выгоды · ЭкоНива</title>
 
 <!-- Библиотеки для экспорта в PDF -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous"></script>
 
 <style>
 :root{
@@ -33,7 +33,15 @@ button{cursor:pointer;border:1px solid #cbd5e1;background:#fff;border-radius:10p
 .table{width:100%;border-collapse:collapse}
 .table th,.table td{border:1px solid var(--line);padding:8px 10px;vertical-align:middle}
 .table th{background:#f8fafb}
-.cell-inp{width:100%;padding:8px 10px;border:1px solid #cbd5e1;border-radius:10px;background:var(--edit);font:inherit}
+.cell-inp{
+  min-width:140px;      /* шире поля */
+  flex:1;
+  padding:8px 12px;
+  border:1px solid #cbd5e1;
+  border-radius:10px;
+  background:var(--edit);
+  font:inherit;
+}
 .cell-inp[type=number]{text-align:right}
 .row-title{white-space:nowrap;font-weight:700;background:#fbfffb}
 .kpis{display:grid;grid-template-columns:1fr;gap:10px}
@@ -72,9 +80,7 @@ button{cursor:pointer;border:1px solid #cbd5e1;background:#fff;border-radius:10p
       <div class="badge">1) Введите данные</div>
       <div class="badge">2) Проверьте результаты</div>
       <div class="muted">
-        Заполните жёлтые поля: базовую цену (руб/кг), базовые Ж/Б, веса влияния Жира/Белка (в долях,
-        по умолчанию 0.5 + 0.5), объём сравнения (кг), количество голов и характеристики двух коров.
-        Можно вводить значения с запятой (например 3,7).
+        Заполните жёлтые поля: базовую цену (руб/кг), базовые Ж/Б, веса влияния Жира/Белка, объём сравнения (кг), количество голов и характеристики двух коров.
       </div>
       <div class="muted">
         Наименование товара фиксировано: <b>Сырое молоко</b>.
@@ -105,13 +111,13 @@ button{cursor:pointer;border:1px solid #cbd5e1;background:#fff;border-radius:10p
             <tr>
               <td class="row-title">База: Жир / Белок</td>
               <td style="display:flex; gap:8px">
-                <input id="baseFat"   type="number" step="0.01" class="cell-inp" value="3.7"  title="Жир, %">
-                <input id="baseProt"  type="number" step="0.01" class="cell-inp" value="3.2"  title="Белок, %">
+                <input id="baseFat"   type="number" step="0.01" class="cell-inp" value="3.7">
+                <input id="baseProt"  type="number" step="0.01" class="cell-inp" value="3.2">
               </td>
               <td class="right">%</td>
             </tr>
             <tr>
-              <td class="row-title">Веса влияния (Жир / Белок) <span class="muted">(в долях, суммарно 1.00)</span></td>
+              <td class="row-title">Веса влияния (Жир / Белок)</td>
               <td style="display:flex; gap:8px">
                 <input id="wFat"  type="number" step="0.01" class="cell-inp" value="0.50">
                 <input id="wProt" type="number" step="0.01" class="cell-inp" value="0.50">
@@ -121,8 +127,8 @@ button{cursor:pointer;border:1px solid #cbd5e1;background:#fff;border-radius:10p
             <tr>
               <td class="row-title">Объём сравнения / Кол-во голов</td>
               <td style="display:flex; gap:8px">
-                <input id="volume" type="number" step="1" class="cell-inp" value="10000" title="Объём, кг">
-                <input id="heads"  type="number" step="1" class="cell-inp" value="1"     title="Голов">
+                <input id="volume" type="number" step="1" class="cell-inp" value="10000">
+                <input id="heads"  type="number" step="1" class="cell-inp" value="1">
               </td>
               <td class="right">кг / гол.</td>
             </tr>
@@ -144,7 +150,6 @@ button{cursor:pointer;border:1px solid #cbd5e1;background:#fff;border-radius:10p
             </tr>
           </tbody>
         </table>
-        <div class="muted" style="margin-top:8px">Примечание: если wЖир + wБелок ≠ 1, веса автоматически нормируются.</div>
       </div>
     </section>
 
@@ -171,113 +176,46 @@ button{cursor:pointer;border:1px solid #cbd5e1;background:#fff;border-radius:10p
 </div>
 
 <script>
-/* ===== Утилиты ===== */
-const el = id => document.getElementById(id);
-const num = v => {
-  if (v === '' || v == null) return 0;
-  const n = Number(String(v).replace(',', '.').replace(/\s+/g,''));
-  return Number.isFinite(n) ? n : 0;
-};
-const fmt2 = v => (v==null || isNaN(v)) ? '' : Number(v).toFixed(2);
-
-/* ===== Расчёт ===== */
-function normalizeWeights(wf, wp){
-  const s = wf + wp;
-  if (s <= 0) return [0.5, 0.5];
-  return [wf/s, wp/s];
-}
-
+const el=id=>document.getElementById(id);
+const num=v=>{if(v===''||v==null)return 0;const n=Number(String(v).replace(',','.').replace(/\s+/g,''));return Number.isFinite(n)?n:0};
+const fmt2=v=>(v==null||isNaN(v))?'':Number(v).toFixed(2);
+function normalizeWeights(wf,wp){const s=wf+wp;if(s<=0)return[0.5,0.5];return[wf/s,wp/s];}
 function calc(){
-  const name = 'Сырое молоко'; // фиксированное значение
-
-  const basePrice = num(el('basePrice').value);     // руб/кг
-  const baseFat   = num(el('baseFat').value);       // %
-  const baseProt  = num(el('baseProt').value);      // %
-  let   wFat      = num(el('wFat').value);          // доля
-  let   wProt     = num(el('wProt').value);         // доля
-  [wFat, wProt] = normalizeWeights(wFat, wProt);
-
-  const volume = Math.max(0,num(el('volume').value)); // кг
-  const heads  = Math.max(1,Math.round(num(el('heads').value)));
-
-  const fat1  = num(el('fat1').value),  prot1 = num(el('prot1').value);
-  const fat2  = num(el('fat2').value),  prot2 = num(el('prot2').value);
-
-  // цена за кг по формуле весов
-  const price1 = basePrice * ( wFat * (fat1/baseFat) + wProt * (prot1/baseProt) );
-  const price2 = basePrice * ( wFat * (fat2/baseFat) + wProt * (prot2/baseProt) );
-
-  // стоимость надоев на выбранном объёме
-  const total1 = price1 * volume;
-  const total2 = price2 * volume;
-  const diff   = total1 - total2;
-  const better = diff>0 ? 'Корова 1' : (diff<0 ? 'Корова 2' : 'Одинаково');
-
-  const herd1 = total1 * heads;
-  const herd2 = total2 * heads;
-  const herdDiff = herd1 - herd2;
-
-  // KPI — только необходимые метрики
-  const kpis = [
-    ['Наименование товара', name],
-    ['Базовая цена, руб/кг', fmt2(basePrice)],
-    ['Цена Корова 1, руб/кг', fmt2(price1)],
-    ['Цена Корова 2, руб/кг', fmt2(price2)],
-    ['Стоимость надоя (Корова 1), руб', fmt2(total1)],
-    ['Стоимость надоя (Корова 2), руб', fmt2(total2)],
-    ['Разница на объёме, руб', fmt2(Math.abs(diff))],
-    ['Разница на стаде, руб', fmt2(Math.abs(herdDiff))],
-    ['Кто выгоднее', better]
+  const name='Сырое молоко';
+  const basePrice=num(el('basePrice').value);
+  const baseFat=num(el('baseFat').value);
+  const baseProt=num(el('baseProt').value);
+  let wFat=num(el('wFat').value),wProt=num(el('wProt').value);
+  [wFat,wProt]=normalizeWeights(wFat,wProt);
+  const volume=Math.max(0,num(el('volume').value));
+  const heads=Math.max(1,Math.round(num(el('heads').value)));
+  const fat1=num(el('fat1').value),prot1=num(el('prot1').value);
+  const fat2=num(el('fat2').value),prot2=num(el('prot2').value);
+  const price1=basePrice*(wFat*(fat1/baseFat)+wProt*(prot1/baseProt));
+  const price2=basePrice*(wFat*(fat2/baseFat)+wProt*(prot2/baseProt));
+  const total1=price1*volume,total2=price2*volume;
+  const diff=total1-total2,better=diff>0?'Корова 1':(diff<0?'Корова 2':'Одинаково');
+  const herd1=total1*heads,herd2=total2*heads,herdDiff=herd1-herd2;
+  const kpis=[
+    ['Наименование товара',name],
+    ['Базовая цена, руб/кг',fmt2(basePrice)],
+    ['Цена Корова 1, руб/кг',fmt2(price1)],
+    ['Цена Корова 2, руб/кг',fmt2(price2)],
+    ['Стоимость надоя (Корова 1), руб',fmt2(total1)],
+    ['Стоимость надоя (Корова 2), руб',fmt2(total2)],
+    ['Разница на объёме, руб',fmt2(Math.abs(diff))],
+    ['Разница на стаде, руб',fmt2(Math.abs(herdDiff))],
+    ['Кто выгоднее',better]
   ];
   renderKPIs(kpis);
 }
-
-function renderKPIs(items){
-  const box = document.getElementById('kpis'); box.innerHTML='';
-  items.forEach(([name,val])=>{
-    const div = document.createElement('div');
-    div.className = 'kpi';
-    div.innerHTML = `<div class="name">${name}</div><div class="val">${val}</div>`;
-    box.appendChild(div);
-  });
-}
-
-/* ===== Служебные: сброс, экспорт ===== */
-function resetAll(){
-  document.querySelectorAll('.cell-inp').forEach(i=>{
-    if (i.type==='number') i.value = '';
-  });
-  // значения по умолчанию
-  el('basePrice').value=50; el('baseFat').value=3.7; el('baseProt').value=3.2;
-  el('wFat').value=0.5; el('wProt').value=0.5; el('volume').value=10000; el('heads').value=1;
-  el('fat1').value=3.85; el('prot1').value=3.45; el('fat2').value=3.60; el('prot2').value=3.20;
-  calc();
-}
-
-async function exportPDF(){
-  const area = document.getElementById('capture');
-  const canvas = await html2canvas(area,{scale:2,useCORS:true});
-  const img = canvas.toDataURL('image/png');
-  const { jsPDF } = window.jspdf;
-  const pdf = new jsPDF('p','pt','a4');
-  const w = pdf.internal.pageSize.getWidth();
-  const h = pdf.internal.pageSize.getHeight();
-  const ratio = canvas.width/canvas.height;
-  let imgW = w-40, imgH = imgW/ratio, x=20,y=20;
-  if (imgH>h-40){ imgH=h-40; imgW=imgH*ratio; }
-  pdf.addImage(img,'PNG',x,y,imgW,imgH,'','FAST');
-  // простая многостраничность (если длинно)
-  let rendered = imgH*(canvas.width/imgW);
-  let left = canvas.height - rendered;
-  while(left>0){ pdf.addPage(); pdf.addImage(img,'PNG',x,20,imgW,imgH,'','FAST'); left -= rendered; }
-  pdf.save('formula_vygody_ekoniva.pdf');
-}
-
-/* ===== Слушатели и запуск ===== */
-document.getElementById('btnReset').addEventListener('click', resetAll);
-document.getElementById('btnPdf').addEventListener('click', exportPDF);
-document.querySelectorAll('#inputs .cell-inp').forEach(inp=> inp.addEventListener('input', calc));
-calc(); // первичный расчёт
+function renderKPIs(items){const box=document.getElementById('kpis');box.innerHTML='';items.forEach(([n,v])=>{const d=document.createElement('div');d.className='kpi';d.innerHTML=`<div class="name">${n}</div><div class="val">${v}</div>`;box.appendChild(d)});}
+function resetAll(){el('basePrice').value=50;el('baseFat').value=3.7;el('baseProt').value=3.2;el('wFat').value=0.5;el('wProt').value=0.5;el('volume').value=10000;el('heads').value=1;el('fat1').value=3.85;el('prot1').value=3.45;el('fat2').value=3.60;el('prot2').value=3.20;calc();}
+async function exportPDF(){const area=document.getElementById('capture');const canvas=await html2canvas(area,{scale:2,useCORS:true});const img=canvas.toDataURL('image/png');const{jsPDF}=window.jspdf;const pdf=new jsPDF('p','pt','a4');const w=pdf.internal.pageSize.getWidth();const h=pdf.internal.pageSize.getHeight();const ratio=canvas.width/canvas.height;let imgW=w-40,imgH=imgW/ratio,x=20,y=20;if(imgH>h-40){imgH=h-40;imgW=imgH*ratio;}pdf.addImage(img,'PNG',x,y,imgW,imgH,'','FAST');pdf.save('formula_vygody_ekoniva.pdf');}
+document.getElementById('btnReset').addEventListener('click',resetAll);
+document.getElementById('btnPdf').addEventListener('click',exportPDF);
+document.querySelectorAll('#inputs .cell-inp').forEach(inp=>inp.addEventListener('input',calc));
+calc();
 </script>
 </body>
 </html>
