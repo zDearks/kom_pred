@@ -18,51 +18,89 @@
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif}
-.header{background:linear-gradient(90deg,var(--green),var(--green2));color:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+
+/* ===== Шапка ===== */
+.header{
+  background:linear-gradient(90deg,var(--green),var(--green2));
+  color:#fff;padding:12px 16px;
+  display:flex;justify-content:space-between;align-items:center;gap:12px
+}
 .brand{display:flex;align-items:center;gap:10px}
 .brand img{height:28px;width:auto;display:block}
+.brand .fallback{
+  display:none;
+  padding:4px 8px;border:1px solid rgba(255,255,255,.55);
+  border-radius:8px;background:rgba(255,255,255,.12);
+  font-weight:800;letter-spacing:.2px
+}
 .header h1{margin:0;font-size:20px}
 .header .actions{display:flex;gap:8px}
-button{cursor:pointer;border:1px solid #cbd5e1;background:#fff;border-radius:10px;padding:8px 12px}
+button{
+  cursor:pointer;border:1px solid #cbd5e1;background:#fff;
+  border-radius:10px;padding:8px 12px
+}
+
+/* ===== Макет ===== */
 .container{max-width:1100px;margin:18px auto;padding:0 16px}
-.block{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:0 2px 8px rgba(0,0,0,.04);margin-bottom:16px;overflow:hidden}
+.block{
+  background:var(--card);border:1px solid var(--line);border-radius:14px;
+  box-shadow:0 2px 8px rgba(0,0,0,.04);margin-bottom:16px;overflow:hidden
+}
 .block .head{padding:12px 14px;border-bottom:1px solid var(--line);font-weight:800}
 .block .body{padding:14px}
 .grid{display:grid;grid-template-columns:1.15fr .85fr;gap:16px}
 @media (max-width:980px){.grid{grid-template-columns:1fr}}
+
+/* ===== Таблицы/поля ===== */
 .table{width:100%;border-collapse:collapse}
 .table th,.table td{border:1px solid var(--line);padding:8px 10px;vertical-align:middle}
 .table th{background:#f8fafb}
+.row-title{white-space:nowrap;font-weight:700;background:#fbfffb}
+
+/* Жёлтые поля — теперь расширяются автоматически */
 .cell-inp{
-  min-width:140px;      /* шире поля */
-  flex:1;
-  padding:8px 12px;
-  border:1px solid #cbd5e1;
-  border-radius:10px;
-  background:var(--edit);
-  font:inherit;
+  min-width:140px;      /* нижний предел */
+  max-width:360px;      /* верхний предел (можно увеличить) */
+  width:140px;          /* стартовая ширина; далее будет управляться JS */
+  padding:8px 12px;border:1px solid #cbd5e1;border-radius:10px;
+  background:var(--edit);font:inherit;transition:width .12s ease;
 }
 .cell-inp[type=number]{text-align:right}
-.row-title{white-space:nowrap;font-weight:700;background:#fbfffb}
+
+/* строки с двумя полями — флекс, чтобы оба красиво расширялись */
+.td-flex{display:flex;gap:8px;align-items:center}
+
+/* KPI */
 .kpis{display:grid;grid-template-columns:1fr;gap:10px}
 .kpi{background:#f7fff9;border:1px solid #d9f2e2;border-radius:12px;padding:10px 12px}
 .kpi .name{font-size:12px;color:var(--muted)}
 .kpi .val{font-size:20px;font-weight:800;color:#0b6e2b;word-break:break-all}
+
 .muted{color:var(--muted)}
+.right{text-align:right}
+
+/* Футер */
 .footer{max-width:1100px;margin:18px auto 28px;padding:0 16px;display:flex;justify-content:space-between;align-items:end;gap:16px}
 .footer .contacts{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px}
 .footer .contacts a{color:#0b6e2b;text-decoration:none}
 .footer img{height:86px;width:auto}
 @media (max-width:900px){.footer{flex-direction:column-reverse;align-items:flex-start}.footer img{height:72px}}
 .badge{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border:1px solid #d1e9d7;border-radius:999px;background:#f2fff7;color:#0b6e2b;font-size:12px}
-.right{text-align:right}
+
+/* Скрытый измеритель ширины (для авто-подстройки) */
+#measurer{
+  position:absolute;left:-9999px;top:-9999px;visibility:hidden;white-space:pre;
+  font:15px/1.5 Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;
+  padding:8px 12px;border:1px solid #cbd5e1;border-radius:10px;
+}
 </style>
 </head>
 <body>
 
 <header class="header">
   <div class="brand">
-    <img src="ekoniva_logo.png" alt="ЭкоНива">
+    <img id="logo" src="ekoniva_logo.png" alt="ЭкоНива">
+    <span id="logoFallback" class="fallback">ЭкоНива</span>
     <h1>Формула выгоды</h1>
   </div>
   <div class="actions">
@@ -80,11 +118,11 @@ button{cursor:pointer;border:1px solid #cbd5e1;background:#fff;border-radius:10p
       <div class="badge">1) Введите данные</div>
       <div class="badge">2) Проверьте результаты</div>
       <div class="muted">
-        Заполните жёлтые поля: базовую цену (руб/кг), базовые Ж/Б, веса влияния Жира/Белка, объём сравнения (кг), количество голов и характеристики двух коров.
+        Заполните жёлтые поля: базовую цену (руб/кг), базовые Ж/Б, веса влияния Жира/Белка, объём сравнения (кг),
+        количество голов и характеристики двух коров. Можно вводить числа с запятой.
       </div>
       <div class="muted">
-        Наименование товара фиксировано: <b>Сырое молоко</b>.
-        Цена для каждой коровы рассчитывается от базовой цены с учётом состава. Итоги видно справа, страницу можно выгрузить в PDF.
+        Наименование товара фиксировано: <b>Сырое молоко</b>. Итоги справа; страницу можно выгрузить в PDF.
       </div>
     </div>
   </section>
@@ -100,7 +138,7 @@ button{cursor:pointer;border:1px solid #cbd5e1;background:#fff;border-radius:10p
           <tbody id="inputs">
             <tr>
               <td class="row-title">Наименование товара</td>
-              <td><div style="padding:8px 10px;border:1px solid #e5e7eb;border-radius:10px;background:#f9fafb;font-weight:700">Сырое молоко</div></td>
+              <td><div style="padding:8px 12px;border:1px solid #e5e7eb;border-radius:10px;background:#f9fafb;font-weight:700">Сырое молоко</div></td>
               <td class="right">—</td>
             </tr>
             <tr>
@@ -110,15 +148,15 @@ button{cursor:pointer;border:1px solid #cbd5e1;background:#fff;border-radius:10p
             </tr>
             <tr>
               <td class="row-title">База: Жир / Белок</td>
-              <td style="display:flex; gap:8px">
-                <input id="baseFat"   type="number" step="0.01" class="cell-inp" value="3.7">
-                <input id="baseProt"  type="number" step="0.01" class="cell-inp" value="3.2">
+              <td class="td-flex">
+                <input id="baseFat"   type="number" step="0.01" class="cell-inp" value="3.7" title="Жир, %">
+                <input id="baseProt"  type="number" step="0.01" class="cell-inp" value="3.2" title="Белок, %">
               </td>
               <td class="right">%</td>
             </tr>
             <tr>
-              <td class="row-title">Веса влияния (Жир / Белок)</td>
-              <td style="display:flex; gap:8px">
+              <td class="row-title">Веса влияния (Жир / Белок) <span class="muted">(в долях, суммарно 1.00)</span></td>
+              <td class="td-flex">
                 <input id="wFat"  type="number" step="0.01" class="cell-inp" value="0.50">
                 <input id="wProt" type="number" step="0.01" class="cell-inp" value="0.50">
               </td>
@@ -126,15 +164,15 @@ button{cursor:pointer;border:1px solid #cbd5e1;background:#fff;border-radius:10p
             </tr>
             <tr>
               <td class="row-title">Объём сравнения / Кол-во голов</td>
-              <td style="display:flex; gap:8px">
-                <input id="volume" type="number" step="1" class="cell-inp" value="10000">
-                <input id="heads"  type="number" step="1" class="cell-inp" value="1">
+              <td class="td-flex">
+                <input id="volume" type="number" step="1" class="cell-inp" value="10000" title="Объём, кг">
+                <input id="heads"  type="number" step="1" class="cell-inp" value="1"     title="Голов">
               </td>
               <td class="right">кг / гол.</td>
             </tr>
             <tr>
               <td class="row-title">Корова 1: Жир / Белок</td>
-              <td style="display:flex; gap:8px">
+              <td class="td-flex">
                 <input id="fat1"  type="number" step="0.01" class="cell-inp" value="3.85">
                 <input id="prot1" type="number" step="0.01" class="cell-inp" value="3.45">
               </td>
@@ -142,7 +180,7 @@ button{cursor:pointer;border:1px solid #cbd5e1;background:#fff;border-radius:10p
             </tr>
             <tr>
               <td class="row-title">Корова 2: Жир / Белок</td>
-              <td style="display:flex; gap:8px">
+              <td class="td-flex">
                 <input id="fat2"  type="number" step="0.01" class="cell-inp" value="3.60">
                 <input id="prot2" type="number" step="0.01" class="cell-inp" value="3.20">
               </td>
@@ -175,46 +213,150 @@ button{cursor:pointer;border:1px solid #cbd5e1;background:#fff;border-radius:10p
   </div>
 </div>
 
+<!-- скрытый измеритель для авто-ширины -->
+<span id="measurer"></span>
+
 <script>
-const el=id=>document.getElementById(id);
-const num=v=>{if(v===''||v==null)return 0;const n=Number(String(v).replace(',','.').replace(/\s+/g,''));return Number.isFinite(n)?n:0};
-const fmt2=v=>(v==null||isNaN(v))?'':Number(v).toFixed(2);
-function normalizeWeights(wf,wp){const s=wf+wp;if(s<=0)return[0.5,0.5];return[wf/s,wp/s];}
+/* ===== Логотип: плавный fallback ===== */
+const logo = document.getElementById('logo');
+const logoFallback = document.getElementById('logoFallback');
+if (logo){
+  logo.addEventListener('error', ()=>{
+    logo.style.display='none';
+    if (logoFallback) logoFallback.style.display='inline-flex';
+  }, {once:true});
+}
+
+/* ===== Утилиты ===== */
+const el = id => document.getElementById(id);
+const num = v => {
+  if (v === '' || v == null) return 0;
+  const n = Number(String(v).replace(',', '.').replace(/\s+/g,''));
+  return Number.isFinite(n) ? n : 0;
+};
+const fmt2 = v => (v==null || isNaN(v)) ? '' : Number(v).toFixed(2);
+
+/* ===== Авто-подстройка ширины инпутов ===== */
+const meas = document.getElementById('measurer');
+function measureWidth(text){
+  // переносим актуальные стили поля в измеритель
+  meas.style.font = getComputedStyle(document.body).font;
+  meas.textContent = text || '';
+  const w = meas.getBoundingClientRect().width;
+  // учтём внутренние паддинги 8px 12px ~ +24
+  return Math.ceil(w + 24);
+}
+function autosizeInput(inp){
+  const min = 140, max = 360; // можно менять
+  // показываем содержимое или placeholder
+  const content = (inp.value && String(inp.value).length>0) ? String(inp.value) : (inp.placeholder || '');
+  let w = measureWidth(content);
+  if (w < min) w = min;
+  if (w > max) w = max;
+  inp.style.width = w + 'px';
+}
+function autosizeAll(){
+  document.querySelectorAll('.cell-inp').forEach(autosizeInput);
+}
+
+/* ===== Расчёт ===== */
+function normalizeWeights(wf, wp){
+  const s = wf + wp;
+  if (s <= 0) return [0.5, 0.5];
+  return [wf/s, wp/s];
+}
 function calc(){
-  const name='Сырое молоко';
-  const basePrice=num(el('basePrice').value);
-  const baseFat=num(el('baseFat').value);
-  const baseProt=num(el('baseProt').value);
-  let wFat=num(el('wFat').value),wProt=num(el('wProt').value);
-  [wFat,wProt]=normalizeWeights(wFat,wProt);
-  const volume=Math.max(0,num(el('volume').value));
-  const heads=Math.max(1,Math.round(num(el('heads').value)));
-  const fat1=num(el('fat1').value),prot1=num(el('prot1').value);
-  const fat2=num(el('fat2').value),prot2=num(el('prot2').value);
-  const price1=basePrice*(wFat*(fat1/baseFat)+wProt*(prot1/baseProt));
-  const price2=basePrice*(wFat*(fat2/baseFat)+wProt*(prot2/baseProt));
-  const total1=price1*volume,total2=price2*volume;
-  const diff=total1-total2,better=diff>0?'Корова 1':(diff<0?'Корова 2':'Одинаково');
-  const herd1=total1*heads,herd2=total2*heads,herdDiff=herd1-herd2;
-  const kpis=[
-    ['Наименование товара',name],
-    ['Базовая цена, руб/кг',fmt2(basePrice)],
-    ['Цена Корова 1, руб/кг',fmt2(price1)],
-    ['Цена Корова 2, руб/кг',fmt2(price2)],
-    ['Стоимость надоя (Корова 1), руб',fmt2(total1)],
-    ['Стоимость надоя (Корова 2), руб',fmt2(total2)],
-    ['Разница на объёме, руб',fmt2(Math.abs(diff))],
-    ['Разница на стаде, руб',fmt2(Math.abs(herdDiff))],
-    ['Кто выгоднее',better]
+  const name = 'Сырое молоко'; // фиксировано
+  const basePrice = num(el('basePrice').value);
+  const baseFat   = num(el('baseFat').value);
+  const baseProt  = num(el('baseProt').value);
+  let   wFat      = num(el('wFat').value);
+  let   wProt     = num(el('wProt').value);
+  [wFat, wProt] = normalizeWeights(wFat, wProt);
+  const volume = Math.max(0,num(el('volume').value));
+  const heads  = Math.max(1,Math.round(num(el('heads').value)));
+  const fat1   = num(el('fat1').value),  prot1 = num(el('prot1').value);
+  const fat2   = num(el('fat2').value),  prot2 = num(el('prot2').value);
+
+  const price1 = basePrice * ( wFat * (fat1/baseFat) + wProt * (prot1/baseProt) );
+  const price2 = basePrice * ( wFat * (fat2/baseFat) + wProt * (prot2/baseProt) );
+
+  const total1 = price1 * volume;
+  const total2 = price2 * volume;
+  const diff   = total1 - total2;
+  const better = diff>0 ? 'Корова 1' : (diff<0 ? 'Корова 2' : 'Одинаково');
+
+  const herd1 = total1 * heads;
+  const herd2 = total2 * heads;
+  const herdDiff = herd1 - herd2;
+
+  // KPI
+  const kpis = [
+    ['Наименование товара', name],
+    ['Базовая цена, руб/кг', fmt2(basePrice)],
+    ['Цена Корова 1, руб/кг', fmt2(price1)],
+    ['Цена Корова 2, руб/кг', fmt2(price2)],
+    ['Стоимость надоя (Корова 1), руб', fmt2(total1)],
+    ['Стоимость надоя (Корова 2), руб', fmt2(total2)],
+    ['Разница на объёме, руб', fmt2(Math.abs(diff))],
+    ['Разница на стаде, руб', fmt2(Math.abs(herdDiff))],
+    ['Кто выгоднее', better]
   ];
   renderKPIs(kpis);
+  // При каждом пересчёте подстроим ширины (на случай больших чисел)
+  autosizeAll();
 }
-function renderKPIs(items){const box=document.getElementById('kpis');box.innerHTML='';items.forEach(([n,v])=>{const d=document.createElement('div');d.className='kpi';d.innerHTML=`<div class="name">${n}</div><div class="val">${v}</div>`;box.appendChild(d)});}
-function resetAll(){el('basePrice').value=50;el('baseFat').value=3.7;el('baseProt').value=3.2;el('wFat').value=0.5;el('wProt').value=0.5;el('volume').value=10000;el('heads').value=1;el('fat1').value=3.85;el('prot1').value=3.45;el('fat2').value=3.60;el('prot2').value=3.20;calc();}
-async function exportPDF(){const area=document.getElementById('capture');const canvas=await html2canvas(area,{scale:2,useCORS:true});const img=canvas.toDataURL('image/png');const{jsPDF}=window.jspdf;const pdf=new jsPDF('p','pt','a4');const w=pdf.internal.pageSize.getWidth();const h=pdf.internal.pageSize.getHeight();const ratio=canvas.width/canvas.height;let imgW=w-40,imgH=imgW/ratio,x=20,y=20;if(imgH>h-40){imgH=h-40;imgW=imgH*ratio;}pdf.addImage(img,'PNG',x,y,imgW,imgH,'','FAST');pdf.save('formula_vygody_ekoniva.pdf');}
-document.getElementById('btnReset').addEventListener('click',resetAll);
-document.getElementById('btnPdf').addEventListener('click',exportPDF);
-document.querySelectorAll('#inputs .cell-inp').forEach(inp=>inp.addEventListener('input',calc));
+function renderKPIs(items){
+  const box = document.getElementById('kpis'); box.innerHTML='';
+  items.forEach(([name,val])=>{
+    const div = document.createElement('div');
+    div.className = 'kpi';
+    div.innerHTML = `<div class="name">${name}</div><div class="val">${val}</div>`;
+    box.appendChild(div);
+  });
+}
+
+/* ===== Служебные: сброс, экспорт в PDF ===== */
+function resetAll(){
+  const defaults = {
+    basePrice:50, baseFat:3.7, baseProt:3.2,
+    wFat:0.5, wProt:0.5, volume:10000, heads:1,
+    fat1:3.85, prot1:3.45, fat2:3.60, prot2:3.20
+  };
+  for (const [id,val] of Object.entries(defaults)){
+    const node = el(id); if (node) node.value = val;
+  }
+  calc();
+}
+async function exportPDF(){
+  const area = document.getElementById('capture');
+  const canvas = await html2canvas(area,{scale:2,useCORS:true});
+  const img = canvas.toDataURL('image/png');
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF('p','pt','a4');
+  const w = pdf.internal.pageSize.getWidth();
+  const h = pdf.internal.pageSize.getHeight();
+  const ratio = canvas.width/canvas.height;
+  let imgW = w-40, imgH = imgW/ratio, x=20, y=20;
+  if (imgH>h-40){ imgH=h-40; imgW=imgH*ratio; }
+  pdf.addImage(img,'PNG',x,y,imgW,imgH,'','FAST');
+  pdf.save('formula_vygody_ekoniva.pdf');
+}
+
+/* ===== Слушатели ===== */
+document.getElementById('btnReset').addEventListener('click', resetAll);
+document.getElementById('btnPdf').addEventListener('click', exportPDF);
+
+// Автоподстройка: при вводе, при фокусе и при загрузке
+document.querySelectorAll('.cell-inp').forEach(inp=>{
+  const handler = ()=>{ autosizeInput(inp); calc(); };
+  inp.addEventListener('input', handler);
+  inp.addEventListener('focus', handler);
+  // стартовая настройка
+  autosizeInput(inp);
+});
+
+// Первый расчёт
 calc();
 </script>
 </body>
