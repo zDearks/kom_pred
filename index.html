@@ -1,11 +1,11 @@
 <!doctype html>
 <html lang="ru">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Формула выгоды · ЭкоНива</title>
 
-<!-- Библиотеки для экспорта в PDF -->
+<!-- Экспорт в PDF -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous"></script>
 
@@ -28,8 +28,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,system-u
 .brand{display:flex;align-items:center;gap:10px}
 .brand img{height:28px;width:auto;display:block}
 .brand .fallback{
-  display:none;
-  padding:4px 8px;border:1px solid rgba(255,255,255,.55);
+  display:none;padding:4px 8px;border:1px solid rgba(255,255,255,.55);
   border-radius:8px;background:rgba(255,255,255,.12);
   font-weight:800;letter-spacing:.2px
 }
@@ -57,17 +56,15 @@ button{
 .table th{background:#f8fafb}
 .row-title{white-space:nowrap;font-weight:700;background:#fbfffb}
 
-/* Жёлтые поля — теперь расширяются автоматически */
+/* Жёлтые поля — с автоподстройкой ширины */
 .cell-inp{
-  min-width:140px;      /* нижний предел */
-  max-width:360px;      /* верхний предел (можно увеличить) */
-  width:140px;          /* стартовая ширина; далее будет управляться JS */
+  min-width:140px;  /* нижний предел */
+  max-width:360px;  /* верхний предел */
+  width:140px;      /* стартовая ширина, дальше управляет JS */
   padding:8px 12px;border:1px solid #cbd5e1;border-radius:10px;
-  background:var(--edit);font:inherit;transition:width .12s ease;
+  background:var(--edit);font:inherit;transition:width .12s ease
 }
 .cell-inp[type=number]{text-align:right}
-
-/* строки с двумя полями — флекс, чтобы оба красиво расширялись */
 .td-flex{display:flex;gap:8px;align-items:center}
 
 /* KPI */
@@ -87,12 +84,26 @@ button{
 @media (max-width:900px){.footer{flex-direction:column-reverse;align-items:flex-start}.footer img{height:72px}}
 .badge{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border:1px solid #d1e9d7;border-radius:999px;background:#f2fff7;color:#0b6e2b;font-size:12px}
 
-/* Скрытый измеритель ширины (для авто-подстройки) */
+/* Скрытый измеритель для авто-ширины */
 #measurer{
   position:absolute;left:-9999px;top:-9999px;visibility:hidden;white-space:pre;
   font:15px/1.5 Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif;
   padding:8px 12px;border:1px solid #cbd5e1;border-radius:10px;
 }
+
+/* === Компактный режим (чтобы всё влезало на экран) === */
+body.compact{font-size:14px}
+body.compact .container{max-width:1120px}
+body.compact .block .head{padding:10px 12px}
+body.compact .block .body{padding:10px 12px}
+body.compact .grid{gap:12px}
+body.compact .table th, 
+body.compact .table td{padding:6px 8px}
+body.compact .cell-inp{min-width:110px;max-width:280px;padding:6px 10px}
+body.compact .kpi{padding:8px 10px}
+body.compact .kpi .name{font-size:11px}
+body.compact .kpi .val{font-size:18px}
+body.compact .badge{padding:3px 7px}
 </style>
 </head>
 <body>
@@ -104,6 +115,7 @@ button{
     <h1>Формула выгоды</h1>
   </div>
   <div class="actions">
+    <button id="btnCompact">Компактный режим</button>
     <button id="btnPdf">Скачать PDF</button>
     <button id="btnReset">Сбросить</button>
   </div>
@@ -213,11 +225,11 @@ button{
   </div>
 </div>
 
-<!-- скрытый измеритель для авто-ширины -->
+<!-- измеритель -->
 <span id="measurer"></span>
 
 <script>
-/* ===== Логотип: плавный fallback ===== */
+/* ===== Логотип: fallback, если файл не найден ===== */
 const logo = document.getElementById('logo');
 const logoFallback = document.getElementById('logoFallback');
 if (logo){
@@ -236,28 +248,24 @@ const num = v => {
 };
 const fmt2 = v => (v==null || isNaN(v)) ? '' : Number(v).toFixed(2);
 
-/* ===== Авто-подстройка ширины инпутов ===== */
+/* ===== Автоподстройка ширины инпутов ===== */
 const meas = document.getElementById('measurer');
 function measureWidth(text){
-  // переносим актуальные стили поля в измеритель
   meas.style.font = getComputedStyle(document.body).font;
   meas.textContent = text || '';
-  const w = meas.getBoundingClientRect().width;
-  // учтём внутренние паддинги 8px 12px ~ +24
-  return Math.ceil(w + 24);
+  return Math.ceil(meas.getBoundingClientRect().width + 24); // +паддинги
 }
 function autosizeInput(inp){
-  const min = 140, max = 360; // можно менять
-  // показываем содержимое или placeholder
+  const isCompact = document.body.classList.contains('compact');
+  const min = isCompact ? 110 : 140;
+  const max = isCompact ? 280 : 360;
   const content = (inp.value && String(inp.value).length>0) ? String(inp.value) : (inp.placeholder || '');
   let w = measureWidth(content);
   if (w < min) w = min;
   if (w > max) w = max;
   inp.style.width = w + 'px';
 }
-function autosizeAll(){
-  document.querySelectorAll('.cell-inp').forEach(autosizeInput);
-}
+function autosizeAll(){ document.querySelectorAll('.cell-inp').forEach(autosizeInput); }
 
 /* ===== Расчёт ===== */
 function normalizeWeights(wf, wp){
@@ -290,7 +298,6 @@ function calc(){
   const herd2 = total2 * heads;
   const herdDiff = herd1 - herd2;
 
-  // KPI
   const kpis = [
     ['Наименование товара', name],
     ['Базовая цена, руб/кг', fmt2(basePrice)],
@@ -303,7 +310,6 @@ function calc(){
     ['Кто выгоднее', better]
   ];
   renderKPIs(kpis);
-  // При каждом пересчёте подстроим ширины (на случай больших чисел)
   autosizeAll();
 }
 function renderKPIs(items){
@@ -316,7 +322,7 @@ function renderKPIs(items){
   });
 }
 
-/* ===== Служебные: сброс, экспорт в PDF ===== */
+/* ===== Служебные ===== */
 function resetAll(){
   const defaults = {
     basePrice:50, baseFat:3.7, baseProt:3.2,
@@ -343,21 +349,24 @@ async function exportPDF(){
   pdf.save('formula_vygody_ekoniva.pdf');
 }
 
-/* ===== Слушатели ===== */
+/* Компактный режим — чтобы всё умещалось */
+document.getElementById('btnCompact').addEventListener('click', ()=>{
+  document.body.classList.toggle('compact');
+  autosizeAll();
+});
+
 document.getElementById('btnReset').addEventListener('click', resetAll);
 document.getElementById('btnPdf').addEventListener('click', exportPDF);
 
-// Автоподстройка: при вводе, при фокусе и при загрузке
+// Автоподстройка и перерасчёт на ввод
 document.querySelectorAll('.cell-inp').forEach(inp=>{
   const handler = ()=>{ autosizeInput(inp); calc(); };
   inp.addEventListener('input', handler);
   inp.addEventListener('focus', handler);
-  // стартовая настройка
   autosizeInput(inp);
 });
 
-// Первый расчёт
-calc();
+calc(); // первичный расчёт
 </script>
 </body>
 </html>
