@@ -1,996 +1,121 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Формула выгоды · ЭкоНива</title>
-    
-    <!-- Библиотеки для экспорта в PDF -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous"></script>
-    
-    <style>
-    /* ===== ПЕРЕМЕННЫЕ ДИЗАЙНА ===== */
-    :root {
-        /* Цвета светлой темы */
-        --color-primary: #009639;
-        --color-primary-light: #0ea76a;
-        --color-text: #1f2937;
-        --color-text-muted: #6b7280;
-        --color-bg: #f6faf7;
-        --color-card: #fff;
-        --color-border: #e5e7eb;
-        --color-edit: #fff6bf;
-        --color-success: #0b6e2b;
-        --color-success-bg: #f2fff7;
-        --color-success-border: #d1e9d7;
-        --color-kpi-bg: #f7fff9;
-        --color-kpi-border: #d9f2e2;
-        
-        /* Размеры и отступы */
-        --border-radius: 12px;
-        --border-radius-sm: 8px;
-        --spacing-xs: 4px;
-        --spacing-sm: 8px;
-        --spacing-md: 12px;
-        --spacing-lg: 16px;
-        --spacing-xl: 24px;
-        
-        /* Тени */
-        --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        
-        /* Анимации */
-        --transition-base: all 0.2s ease-in-out;
-        --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-    
-    /* Темная тема */
-    [data-theme="dark"] {
-        --color-text: #f3f4f6;
-        --color-text-muted: #9ca3af;
-        --color-bg: #111827;
-        --color-card: #1f2937;
-        --color-border: #374151;
-        --color-edit: #4b5563;
-        --color-success: #10b981;
-        --color-success-bg: #064e3b;
-        --color-success-border: #065f46;
-        --color-kpi-bg: #064e3b;
-        --color-kpi-border: #047857;
-    }
-    
-    /* ===== БАЗОВЫЕ СТИЛИ ===== */
-    * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-    }
-    
-    body {
-        background: var(--color-bg);
-        color: var(--color-text);
-        font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
-        font-size: 15px;
-        line-height: 1.5;
-        transition: var(--transition-base);
-    }
-    
-    /* ===== КОМПОНЕНТЫ ===== */
-    /* Кнопки */
-    .btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: var(--spacing-sm);
-        padding: 10px 16px;
-        border: 1px solid var(--color-border);
-        border-radius: var(--border-radius-sm);
-        background: var(--color-card);
-        color: var(--color-text);
-        font: inherit;
-        font-weight: 500;
-        cursor: pointer;
-        transition: var(--transition-base);
-        box-shadow: var(--shadow-sm);
-    }
-    
-    .btn:hover {
-        transform: translateY(-1px);
-        box-shadow: var(--shadow-md);
-    }
-    
-    .btn:active {
-        transform: translateY(0);
-        box-shadow: var(--shadow-sm);
-    }
-    
-    .btn-primary {
-        background: var(--color-primary);
-        border-color: var(--color-primary);
-        color: white;
-    }
-    
-    .btn-icon {
-        width: 18px;
-        height: 18px;
-    }
-    
-    /* Шапка */
-    .header {
-        background: linear-gradient(90deg, var(--color-primary), var(--color-primary-light));
-        color: white;
-        padding: var(--spacing-md) var(--spacing-lg);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: var(--spacing-md);
-        box-shadow: var(--shadow-md);
-        position: sticky;
-        top: 0;
-        z-index: 100;
-    }
-    
-    .brand {
-        display: flex;
-        align-items: center;
-        gap: var(--spacing-md);
-    }
-    
-    .brand img {
-        height: 32px;
-        width: auto;
-        display: block;
-        transition: var(--transition-base);
-    }
-    
-    .brand .fallback {
-        display: none;
-        padding: 6px 12px;
-        border: 1px solid rgba(255, 255, 255, 0.55);
-        border-radius: var(--border-radius-sm);
-        background: rgba(255, 255, 255, 0.12);
-        font-weight: 700;
-        letter-spacing: 0.2px;
-    }
-    
-    .header h1 {
-        margin: 0;
-        font-size: 20px;
-        font-weight: 700;
-    }
-    
-    .header .actions {
-        display: flex;
-        gap: var(--spacing-sm);
-    }
-    
-    /* Контейнеры и блоки */
-    .container {
-        max-width: 1200px;
-        margin: var(--spacing-xl) auto;
-        padding: 0 var(--spacing-lg);
-    }
-    
-    .block {
-        background: var(--color-card);
-        border: 1px solid var(--color-border);
-        border-radius: var(--border-radius);
-        box-shadow: var(--shadow-sm);
-        margin-bottom: var(--spacing-lg);
-        overflow: hidden;
-        transition: var(--transition-base);
-    }
-    
-    .block:hover {
-        box-shadow: var(--shadow-md);
-    }
-    
-    .block .head {
-        padding: var(--spacing-md) var(--spacing-lg);
-        border-bottom: 1px solid var(--color-border);
-        font-weight: 700;
-        background: rgba(0, 0, 0, 0.02);
-    }
-    
-    [data-theme="dark"] .block .head {
-        background: rgba(255, 255, 255, 0.05);
-    }
-    
-    .block .body {
-        padding: var(--spacing-lg);
-    }
-    
-    .grid {
-        display: grid;
-        grid-template-columns: 1.15fr 0.85fr;
-        gap: var(--spacing-lg);
-    }
-    
-    /* Таблицы и поля ввода */
-    .table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-    
-    .table th, .table td {
-        border: 1px solid var(--color-border);
-        padding: var(--spacing-md) var(--spacing-lg);
-        vertical-align: middle;
-    }
-    
-    .table th {
-        background: rgba(0, 0, 0, 0.02);
-        font-weight: 600;
-    }
-    
-    [data-theme="dark"] .table th {
-        background: rgba(255, 255, 255, 0.05);
-    }
-    
-    .row-title {
-        white-space: nowrap;
-        font-weight: 600;
-        background: rgba(0, 150, 57, 0.05);
-    }
-    
-    [data-theme="dark"] .row-title {
-        background: rgba(0, 150, 57, 0.1);
-    }
-    
-    .cell-inp {
-        min-width: 100px;
-        max-width: 200px;
-        width: 120px;
-        padding: 10px 12px;
-        border: 1px solid var(--color-border);
-        border-radius: var(--border-radius-sm);
-        background: var(--color-edit);
-        color: var(--color-text);
-        font: inherit;
-        transition: var(--transition-smooth);
-    }
-    
-    .cell-inp:focus {
-        outline: none;
-        border-color: var(--color-primary);
-        box-shadow: 0 0 0 3px rgba(0, 150, 57, 0.2);
-    }
-    
-    .cell-inp[type="number"] {
-        text-align: right;
-    }
-    
-    .td-flex {
-        display: flex;
-        gap: var(--spacing-sm);
-        align-items: center;
-    }
-    
-    /* KPI блоки */
-    .kpis {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: var(--spacing-md);
-    }
-    
-    .kpi {
-        background: var(--color-kpi-bg);
-        border: 1px solid var(--color-kpi-border);
-        border-radius: var(--border-radius);
-        padding: var(--spacing-md) var(--spacing-lg);
-        transition: var(--transition-base);
-    }
-    
-    .kpi:hover {
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-sm);
-    }
-    
-    .kpi .name {
-        font-size: 13px;
-        color: var(--color-text-muted);
-        margin-bottom: var(--spacing-xs);
-    }
-    
-    .kpi .val {
-        font-size: 20px;
-        font-weight: 700;
-        color: var(--color-success);
-        word-break: break-all;
-    }
-    
-    /* Вспомогательные классы */
-    .muted {
-        color: var(--color-text-muted);
-    }
-    
-    .right {
-        text-align: right;
-    }
-    
-    .badge {
-        display: inline-flex;
-        align-items: center;
-        gap: var(--spacing-xs);
-        padding: 6px 12px;
-        border: 1px solid var(--color-success-border);
-        border-radius: 999px;
-        background: var(--color-success-bg);
-        color: var(--color-success);
-        font-size: 13px;
-        font-weight: 500;
-    }
-    
-    /* Футер */
-    .footer {
-        max-width: 1200px;
-        margin: var(--spacing-xl) auto;
-        padding: 0 var(--spacing-lg);
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-end;
-        gap: var(--spacing-lg);
-    }
-    
-    .footer .contacts {
-        background: var(--color-card);
-        border: 1px solid var(--color-border);
-        border-radius: var(--border-radius);
-        padding: var(--spacing-md) var(--spacing-lg);
-        flex: 1;
-    }
-    
-    .footer .contacts a {
-        color: var(--color-success);
-        text-decoration: none;
-        transition: var(--transition-base);
-    }
-    
-    .footer .contacts a:hover {
-        text-decoration: underline;
-    }
-    
-    .footer img {
-        height: 90px;
-        width: auto;
-        transition: var(--transition-base);
-    }
-    
-    /* Переключатель темы */
-    .theme-toggle {
-        background: none;
-        border: none;
-        color: white;
-        cursor: pointer;
-        padding: 6px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    
-    .theme-toggle:hover {
-        background: rgba(255, 255, 255, 0.1);
-    }
-    
-    .theme-icon {
-        width: 20px;
-        height: 20px;
-    }
-    
-    /* Адаптивность */
-    @media (max-width: 1024px) {
-        .grid {
-            grid-template-columns: 1fr;
-        }
-        
-        .container {
-            padding: 0 var(--spacing-md);
-        }
-    }
-    
-    @media (max-width: 768px) {
-        .header {
-            flex-wrap: wrap;
-        }
-        
-        .header .actions {
-            order: 3;
-            width: 100%;
-            justify-content: center;
-        }
-        
-        .td-flex {
-            flex-direction: column;
-            align-items: stretch;
-            gap: var(--spacing-xs);
-        }
-        
-        .cell-inp {
-            max-width: 100%;
-            width: 100%;
-        }
-        
-        .footer {
-            flex-direction: column-reverse;
-            align-items: flex-start;
-        }
-        
-        .footer img {
-            height: 70px;
-        }
-    }
-    
-    @media (max-width: 480px) {
-        .block .body {
-            padding: var(--spacing-md);
-        }
-        
-        .table th, .table td {
-            padding: var(--spacing-sm) var(--spacing-md);
-        }
-        
-        .brand h1 {
-            font-size: 18px;
-        }
-    }
-    
-    /* Анимации */
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-    
-    .fade-in {
-        animation: fadeIn 0.3s ease forwards;
-    }
-    
-    /* Скрытый измеритель ширины */
-    #measurer {
-        position: absolute;
-        left: -9999px;
-        top: -9999px;
-        visibility: hidden;
-        white-space: pre;
-        font: 15px/1.5 Inter, system-ui, Segoe UI, Roboto, Arial, sans-serif;
-        padding: 8px 12px;
-        border: 1px solid #cbd5e1;
-        border-radius: 10px;
-    }
-    </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Формула выгоды</title>
+
+<style>
+:root{
+  --green:#009639; --green2:#0ea76a;
+  --ink:#1f2937; --muted:#6b7280;
+  --bg:#f6faf7; --card:#fff; --line:#e5e7eb;
+  --edit:#fff6bf;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif}
+
+/* ===== Шапка ===== */
+.header{
+  background:linear-gradient(90deg,var(--green),var(--green2));
+  color:#fff;padding:12px 16px;
+  display:flex;justify-content:space-between;align-items:center;gap:12px
+}
+.header h1{margin:0;font-size:20px}
+.header .actions{display:flex;gap:8px}
+button{
+  cursor:pointer;border:1px solid #cbd5e1;background:#fff;
+  border-radius:10px;padding:8px 12px
+}
+
+/* ===== Макет ===== */
+.container{max-width:1100px;margin:18px auto;padding:0 16px}
+.block{
+  background:var(--card);border:1px solid var(--line);border-radius:14px;
+  box-shadow:0 2px 8px rgba(0,0,0,.04);margin-bottom:16px;overflow:hidden
+}
+.block .head{padding:12px 14px;border-bottom:1px solid var(--line);font-weight:800}
+.block .body{padding:14px}
+.grid{display:grid;grid-template-columns:1.15fr .85fr;gap:16px}
+@media (max-width:980px){.grid{grid-template-columns:1fr}}
+
+/* ===== Таблицы/поля ===== */
+.table{width:100%;border-collapse:collapse}
+.table th,.table td{border:1px solid var(--line);padding:8px 10px;vertical-align:middle}
+.table th{background:#f8fafb}
+.row-title{white-space:nowrap;font-weight:700;background:#fbfffb}
+
+/* Жёлтые поля — увеличенная ширина */
+.cell-inp{
+  min-width:200px;  /* увеличено */
+  max-width:420px;
+  width:200px;
+  padding:8px 12px;border:1px solid #cbd5e1;border-radius:10px;
+  background:var(--edit);font:inherit;
+}
+.cell-inp[type=number]{text-align:right}
+.td-flex{display:flex;gap:8px;align-items:center}
+
+/* KPI */
+.kpis{display:grid;grid-template-columns:1fr;gap:10px}
+.kpi{background:#f7fff9;border:1px solid #d9f2e2;border-radius:12px;padding:10px 12px}
+.kpi .name{font-size:12px;color:var(--muted)}
+.kpi .val{font-size:20px;font-weight:800;color:#0b6e2b;word-break:break-all}
+
+.muted{color:var(--muted)}
+.right{text-align:right}
+</style>
 </head>
 <body>
-    <header class="header">
-        <div class="brand">
-            <img id="logo" src="ekoniva_logo.png" alt="ЭкоНива" style="display: none;">
-            <span id="logoFallback" class="fallback" style="display: inline-flex;">ЭкоНива</span>
-            <h1>Формула выгоды</h1>
-        </div>
-        <div class="actions">
-            <button id="btnPdf" class="btn btn-primary">
-                <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                </svg>
-                Скачать PDF
-            </button>
-            <button id="btnReset" class="btn">
-                <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                </svg>
-                Сбросить
-            </button>
-            <button id="btnTheme" class="btn theme-toggle">
-                <svg class="theme-icon" id="themeIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
-                </svg>
-            </button>
-        </div>
-    </header>
 
-    <main id="capture" class="container">
-        <!-- Инструкция -->
-        <section class="block fade-in">
-            <div class="head">Короткая инструкция</div>
-            <div class="body" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px">
-                <div class="badge">
-                    <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    1) Введите данные
-                </div>
-                <div class="badge">
-                    <svg style="width: 16px; height: 16px;" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    2) Проверьте результаты
-                </div>
-                <div class="muted">
-                    Заполните выделенные поля: базовую цену (руб/кг), базовые Ж/Б, веса влияния Жира/Белка, объём сравнения (кг),
-                    количество голов и характеристики двух коров. Можно вводить числа с запятой.
-                </div>
-                <div class="muted">
-                    Наименование товара фиксировано: <b>Сырое молоко</b>. Итоги справа; страницу можно выгрузить в PDF.
-                </div>
-            </div>
-        </section>
+<header class="header">
+  <h1>Формула выгоды</h1>
+  <div class="actions">
+    <button id="btnReset">Сбросить</button>
+  </div>
+</header>
 
-        <div class="grid">
-            <!-- 1) Ввод -->
-            <section class="block fade-in" style="animation-delay: 0.1s">
-                <div class="head">1) Ввод данных</div>
-                <div class="body">
-                    <table class="table">
-                        <colgroup>
-                            <col style="width:40%">
-                            <col>
-                            <col>
-                        </colgroup>
-                        <thead>
-                            <tr>
-                                <th>Параметр</th>
-                                <th>Значение</th>
-                                <th class="right">Ед.</th>
-                            </tr>
-                        </thead>
-                        <tbody id="inputs">
-                            <tr>
-                                <td class="row-title">Наименование товара</td>
-                                <td>
-                                    <div style="padding:8px 12px;border:1px solid var(--color-border);border-radius:var(--border-radius-sm);background:var(--color-kpi-bg);font-weight:600">
-                                        Сырое молоко
-                                    </div>
-                                </td>
-                                <td class="right">—</td>
-                            </tr>
-                            <tr>
-                                <td class="row-title">Базовая цена при базе Ж/Б</td>
-                                <td><input id="basePrice" type="number" step="0.01" class="cell-inp" value="50"></td>
-                                <td class="right">руб/кг</td>
-                            </tr>
-                            <tr>
-                                <td class="row-title">База: Жир / Белок</td>
-                                <td class="td-flex">
-                                    <input id="baseFat" type="number" step="0.01" class="cell-inp" value="3.7" title="Жир, %">
-                                    <input id="baseProt" type="number" step="0.01" class="cell-inp" value="3.2" title="Белок, %">
-                                </td>
-                                <td class="right">%</td>
-                            </tr>
-                            <tr>
-                                <td class="row-title">Веса влияния (Жир / Белок) <span class="muted">(в долях, суммарно 1.00)</span></td>
-                                <td class="td-flex">
-                                    <input id="wFat" type="number" step="0.01" class="cell-inp" value="0.50">
-                                    <input id="wProt" type="number" step="0.01" class="cell-inp" value="0.50">
-                                </td>
-                                <td class="right">доля</td>
-                            </tr>
-                            <tr>
-                                <td class="row-title">Объём сравнения / Кол-во голов</td>
-                                <td class="td-flex">
-                                    <input id="volume" type="number" step="1" class="cell-inp" value="10000" title="Объём, кг">
-                                    <input id="heads" type="number" step="1" class="cell-inp" value="1" title="Голов">
-                                </td>
-                                <td class="right">кг / гол.</td>
-                            </tr>
-                            <tr>
-                                <td class="row-title">Корова 1: Жир / Белок</td>
-                                <td class="td-flex">
-                                    <input id="fat1" type="number" step="0.01" class="cell-inp" value="3.85">
-                                    <input id="prot1" type="number" step="0.01" class="cell-inp" value="3.45">
-                                </td>
-                                <td class="right">%</td>
-                            </tr>
-                            <tr>
-                                <td class="row-title">Корова 2: Жир / Белок</td>
-                                <td class="td-flex">
-                                    <input id="fat2" type="number" step="0.01" class="cell-inp" value="3.60">
-                                    <input id="prot2" type="number" step="0.01" class="cell-inp" value="3.20">
-                                </td>
-                                <td class="right">%</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </section>
+<main class="container">
+  <div class="grid">
+    <!-- 1) Ввод -->
+    <section class="block">
+      <div class="head">1) Ввод данных</div>
+      <div class="body">
+        <table class="table">
+          <colgroup><col style="width:40%"><col><col></colgroup>
+          <thead><tr><th>Параметр</th><th>Значение</th><th class="right">Ед.</th></tr></thead>
+          <tbody>
+            <tr>
+              <td class="row-title">Наименование товара</td>
+              <td><div style="padding:8px 12px;border:1px solid #e5e7eb;border-radius:10px;background:#f9fafb;font-weight:700">Сырое молоко</div></td>
+              <td class="right">—</td>
+            </tr>
+            <tr>
+              <td class="row-title">Базовая цена при базе Ж/Б</td>
+              <td><input type="number" step="0.01" class="cell-inp" value="50"></td>
+              <td class="right">руб/кг</td>
+            </tr>
+            <!-- остальные строки... -->
+          </tbody>
+        </table>
+      </div>
+    </section>
 
-            <!-- 2) Результаты -->
-            <section class="block fade-in" style="animation-delay: 0.2s">
-                <div class="head">2) Результаты и главные показатели</div>
-                <div class="body">
-                    <div class="kpis" id="kpis">
-                        <div class="kpi">
-                            <div class="name">Наименование товара</div>
-                            <div class="val">Сырое молоко</div>
-                        </div>
-                        <div class="kpi">
-                            <div class="name">Базовая цена, руб/кг</div>
-                            <div class="val">50.00</div>
-                        </div>
-                        <div class="kpi">
-                            <div class="name">Цена Корова 1, руб/кг</div>
-                            <div class="val">52.97</div>
-                        </div>
-                        <div class="kpi">
-                            <div class="name">Цена Корова 2, руб/кг</div>
-                            <div class="val">49.32</div>
-                        </div>
-                        <div class="kpi">
-                            <div class="name">Стоимость надоя (Корова 1), руб</div>
-                            <div class="val">529,666.39</div>
-                        </div>
-                        <div class="kpi">
-                            <div class="name">Стоимость надоя (Корова 2), руб</div>
-                            <div class="val">493,243.24</div>
-                        </div>
-                        <div class="kpi">
-                            <div class="name">Разница на объёме, руб</div>
-                            <div class="val">36,423.14</div>
-                        </div>
-                        <div class="kpi">
-                            <div class="name">Разница на стаде, руб</div>
-                            <div class="val">36,423.14</div>
-                        </div>
-                        <div class="kpi">
-                            <div class="name">Кто выгоднее</div>
-                            <div class="val">Корова 1</div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        </div>
-    </main>
+    <!-- 2) Результаты -->
+    <section class="block">
+      <div class="head">2) Результаты и главные показатели</div>
+      <div class="body">
+        <div class="kpis" id="kpis"></div>
+      </div>
+    </section>
+  </div>
+</main>
 
-    <!-- Футер -->
-    <div class="footer">
-        <img src="cow.png" alt="ЭкоНива" class="fade-in" style="animation-delay: 0.3s">
-        <div class="contacts fade-in" style="animation-delay: 0.4s">
-            <div style="font-weight:600;margin-bottom:4px">Контакты для обратной связи</div>
-            <div>Алина Сорокина</div>
-            <div>Тел.: <a href="tel:+79204085592">+7&nbsp;920&nbsp;408-55-92</a></div>
-            <div>E-mail: <a href="mailto:alina.sorokina@ekoniva-apk.com">alina.sorokina@ekoniva-apk.com</a></div>
-        </div>
-    </div>
-
-    <!-- Скрытый измеритель для авто-ширины -->
-    <span id="measurer"></span>
-
-    <script>
-    /* ===== КОНФИГУРАЦИЯ И ПЕРЕМЕННЫЕ ===== */
-    const CONFIG = {
-        defaults: {
-            basePrice: 50,
-            baseFat: 3.7,
-            baseProt: 3.2,
-            wFat: 0.5,
-            wProt: 0.5,
-            volume: 10000,
-            heads: 1,
-            fat1: 3.85,
-            prot1: 3.45,
-            fat2: 3.6,
-            prot2: 3.2
-        },
-        inputIds: [
-            'basePrice', 'baseFat', 'baseProt', 
-            'wFat', 'wProt', 'volume', 'heads', 
-            'fat1', 'prot1', 'fat2', 'prot2'
-        ],
-        numberOptions: {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-            useGrouping: true
-        }
-    };
-
-    /* ===== УТИЛИТЫ ===== */
-    /**
-     * Получает элемент по ID
-     * @param {string} id - ID элемента
-     * @returns {HTMLElement} Найденный элемент
-     */
-    const el = id => document.getElementById(id);
-
-    /**
-     * Преобразует значение в число, заменяя запятые на точки
-     * @param {string} value - Значение для преобразования
-     * @returns {number} Результат преобразования
-     */
-    const parseNumber = value => {
-        if (value === '' || value == null) return 0;
-        const number = Number(String(value).replace(',', '.').replace(/\s+/g, ''));
-        return Number.isFinite(number) ? number : 0;
-    };
-
-    /**
-     * Форматирует число с двумя десятичными знаками
-     * @param {number} value - Число для форматирования
-     * @returns {string} Отформатированная строка
-     */
-    const formatNumber = value => {
-        if (value == null || isNaN(value)) return '';
-        return new Intl.NumberFormat('ru-RU', CONFIG.numberOptions).format(value);
-    };
-
-    /* ===== УПРАВЛЕНИЕ ТЕМОЙ ===== */
-    /**
-     * Переключает тему между светлой и темной
-     */
-    function toggleTheme() {
-        const currentTheme = document.body.getAttribute('data-theme') || 'light';
-        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-        
-        document.body.setAttribute('data-theme', newTheme);
-        localStorage.setItem('theme', newTheme);
-        
-        // Обновляем иконку
-        const themeIcon = el('themeIcon');
-        if (newTheme === 'dark') {
-            themeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>';
-        } else {
-            themeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>';
-        }
-    }
-
-    /**
-     * Инициализирует тему из localStorage или системных настроек
-     */
-    function initTheme() {
-        const savedTheme = localStorage.getItem('theme');
-        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        
-        if (savedTheme) {
-            document.body.setAttribute('data-theme', savedTheme);
-        } else if (systemPrefersDark) {
-            document.body.setAttribute('data-theme', 'dark');
-        }
-        
-        // Устанавливаем правильную иконку
-        const currentTheme = document.body.getAttribute('data-theme') || 'light';
-        const themeIcon = el('themeIcon');
-        if (currentTheme === 'dark') {
-            themeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>';
-        }
-    }
-
-    /* ===== АВТО-ПОДСТРОЙКА ШИРИНЫ ПОЛЕЙ ВВОДА ===== */
-    const measurer = el('measurer');
-
-    /**
-     * Измеряет ширину текста с учетом стилей
-     * @param {string} text - Текст для измерения
-     * @returns {number} Ширина текста в пикселях
-     */
-    function measureTextWidth(text) {
-        measurer.style.font = getComputedStyle(document.body).font;
-        measurer.textContent = text || '';
-        const width = measurer.getBoundingClientRect().width;
-        return Math.ceil(width + 24); // Учитываем паддинги
-    }
-
-    /**
-     * Автоматически регулирует ширину поля ввода
-     * @param {HTMLInputElement} input - Поле ввода для регулировки
-     */
-    function autosizeInput(input) {
-        const minWidth = 100;
-        const maxWidth = 200;
-        
-        const content = input.value || input.placeholder || '';
-        let width = measureTextWidth(content);
-        
-        width = Math.max(minWidth, Math.min(width, maxWidth));
-        input.style.width = `${width}px`;
-    }
-
-    /**
-     * Применяет авто-подстройку ко всем полям ввода
-     */
-    function autosizeAllInputs() {
-        document.querySelectorAll('.cell-inp').forEach(autosizeInput);
-    }
-
-    /* ===== ЛОГИКА РАСЧЕТОВ ===== */
-    /**
-     * Нормализует веса так, чтобы их сумма была равна 1
-     * @param {number} weightFat - Вес для жира
-     * @param {number} weightProt - Вес для белка
-     * @returns {number[]} Нормализованные веса [жир, белок]
-     */
-    function normalizeWeights(weightFat, weightProt) {
-        const sum = weightFat + weightProt;
-        if (sum <= 0) return [0.5, 0.5];
-        return [weightFat / sum, weightProt / sum];
-    }
-
-    /**
-     * Выполняет все расчеты на основе введенных данных
-     */
-    function calculate() {
-        // Получаем значения из полей ввода
-        const basePrice = parseNumber(el('basePrice').value);
-        const baseFat = parseNumber(el('baseFat').value);
-        const baseProt = parseNumber(el('baseProt').value);
-        let weightFat = parseNumber(el('wFat').value);
-        let weightProt = parseNumber(el('wProt').value);
-        
-        // Нормализуем веса
-        [weightFat, weightProt] = normalizeWeights(weightFat, weightProt);
-        
-        const volume = Math.max(0, parseNumber(el('volume').value));
-        const heads = Math.max(1, Math.round(parseNumber(el('heads').value)));
-        
-        const fat1 = parseNumber(el('fat1').value);
-        const prot1 = parseNumber(el('prot1').value);
-        const fat2 = parseNumber(el('fat2').value);
-        const prot2 = parseNumber(el('prot2').value);
-        
-        // Выполняем расчеты
-        const price1 = basePrice * (weightFat * (fat1 / baseFat) + weightProt * (prot1 / baseProt));
-        const price2 = basePrice * (weightFat * (fat2 / baseFat) + weightProt * (prot2 / baseProt));
-        
-        const total1 = price1 * volume;
-        const total2 = price2 * volume;
-        const diff = total1 - total2;
-        
-        const herd1 = total1 * heads;
-        const herd2 = total2 * heads;
-        const herdDiff = herd1 - herd2;
-        
-        const better = diff > 0 ? 'Корова 1' : (diff < 0 ? 'Корова 2' : 'Одинаково');
-        
-        // Формируем данные для отображения
-        const kpiData = [
-            ['Наименование товара', 'Сырое молоко'],
-            ['Базовая цена, руб/кг', formatNumber(basePrice)],
-            ['Цена Корова 1, руб/кг', formatNumber(price1)],
-            ['Цена Корова 2, руб/кг', formatNumber(price2)],
-            ['Стоимость надоя (Корова 1), руб', formatNumber(total1)],
-            ['Стоимость надоя (Корова 2), руб', formatNumber(total2)],
-            ['Разница на объёме, руб', formatNumber(Math.abs(diff))],
-            ['Разница на стаде, руб', formatNumber(Math.abs(herdDiff))],
-            ['Кто выгоднее', better]
-        ];
-        
-        renderKPI(kpiData);
-        autosizeAllInputs();
-    }
-
-    /**
-     * Отображает рассчитанные показатели в интерфейсе
-     * @param {Array} data - Данные для отображения
-     */
-    function renderKPI(data) {
-        const kpiContainer = el('kpis');
-        kpiContainer.innerHTML = '';
-        
-        data.forEach(([name, value], index) => {
-            const kpiElement = document.createElement('div');
-            kpiElement.className = 'kpi';
-            kpiElement.innerHTML = `
-                <div class="name">${name}</div>
-                <div class="val">${value}</div>
-            `;
-            kpiElement.style.animationDelay = `${0.1 + index * 0.05}s`;
-            kpiContainer.appendChild(kpiElement);
-        });
-    }
-
-    /* ===== УПРАВЛЕНИЕ ФОРМОЙ ===== */
-    /**
-     * Сбрасывает значения формы к значениям по умолчанию
-     */
-    function resetForm() {
-        Object.entries(CONFIG.defaults).forEach(([id, value]) => {
-            const element = el(id);
-            if (element) element.value = value;
-        });
-        calculate();
-    }
-
-    /* ===== ЭКСПОРТ В PDF ===== */
-    /**
-     * Экспортирует содержимое страницы в PDF
-     */
-    async function exportToPDF() {
-        try {
-            const captureElement = el('capture');
-            
-            // Показываем уведомление о начале процесса
-            const notification = document.createElement('div');
-            notification.textContent = 'Подготовка PDF...';
-            notification.style.cssText = `
-                position: fixed; top: 20px; right: 20px; 
-                background: var(--color-primary); color: white;
-                padding: 10px 15px; border-radius: 8px; z-index: 1000;
-                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            `;
-            document.body.appendChild(notification);
-            
-            const canvas = await html2canvas(captureElement, {
-                scale: 2,
-                useCORS: true,
-                logging: false
-            });
-            
-            const imageData = canvas.toDataURL('image/png');
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF('p', 'pt', 'a4');
-            
-            const pageWidth = pdf.internal.pageSize.getWidth();
-            const pageHeight = pdf.internal.pageSize.getHeight();
-            const imageRatio = canvas.width / canvas.height;
-            
-            let imageWidth = pageWidth - 40;
-            let imageHeight = imageWidth / imageRatio;
-            
-            if (imageHeight > pageHeight - 40) {
-                imageHeight = pageHeight - 40;
-                imageWidth = imageHeight * imageRatio;
-            }
-            
-            const x = (pageWidth - imageWidth) / 2;
-            const y = (pageHeight - imageHeight) / 2;
-            
-            pdf.addImage(imageData, 'PNG', x, y, imageWidth, imageHeight, '', 'FAST');
-            pdf.save('formula_vygody_ekoniva.pdf');
-            
-            // Удаляем уведомление
-            document.body.removeChild(notification);
-            
-        } catch (error) {
-            console.error('Ошибка при создании PDF:', error);
-            alert('Не удалось создать PDF файл. Попробуйте еще раз.');
-        }
-    }
-
-    /* ===== ИНИЦИАЛИЗАЦИЯ ===== */
-    /**
-     * Инициализирует приложение после загрузки DOM
-     */
-    function initApp() {
-        // Инициализация темы
-        initTheme();
-        
-        // Настройка логотипа с обработкой ошибок
-        const logo = el('logo');
-        const logoFallback = el('logoFallback');
-        
-        if (logo) {
-            logo.addEventListener('error', () => {
-                logo.style.display = 'none';
-                if (logoFallback) logoFallback.style.display = 'inline-flex';
-            }, { once: true });
-            
-            // Пытаемся показать логотип, если он загрузился
-            if (logo.complete && logo.naturalHeight !== 0) {
-                logo.style.display = 'block';
-            }
-        }
-        
-        // Настройка обработчиков событий
-        el('btnReset').addEventListener('click', resetForm);
-        el('btnPdf').addEventListener('click', exportToPDF);
-        el('btnTheme').addEventListener('click', toggleTheme);
-        
-        // Настройка полей ввода
-        document.querySelectorAll('.cell-inp').forEach(input => {
-            const handleInput = () => {
-                autosizeInput(input);
-                calculate();
-            };
-            
-            input.addEventListener('input', handleInput);
-            input.addEventListener('focus', handleInput);
-            autosizeInput(input);
-        });
-        
-        // Первоначальный расчет
-        calculate();
-    }
-
-    // Запуск приложения после загрузки DOM
-    document.addEventListener('DOMContentLoaded', initApp);
-    </script>
+<script>
+document.getElementById('btnReset').addEventListener('click', ()=>{
+  document.querySelectorAll('.cell-inp').forEach(inp=>inp.value='');
+});
+</script>
 </body>
 </html>
+
